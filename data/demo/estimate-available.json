@@ -1,0 +1,18 @@
+{
+  "referral": {
+    "id": "demo-001",
+    "service": "Speech-language services",
+    "status": "waiting_for_assessment",
+    "received_on": "2026-10-22"
+  },
+  "estimate": {
+    "status": "available",
+    "milestone": "first_assessment",
+    "as_of": "2026-11-05",
+    "range_weeks": { "lower": 6, "upper": 10 },
+    "message": "This estimate may change as appointments become available. The clinic will confirm your appointment separately."
+  },
+  "clinic": {
+    "contact": "waitlist@example.org"
+  }
+}

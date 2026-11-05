@@ -1,0 +1,18 @@
+{
+  "referral": {
+    "id": "demo-002",
+    "service": "Speech-language services",
+    "status": "waiting_for_assessment",
+    "received_on": "2026-10-29"
+  },
+  "estimate": {
+    "status": "unavailable",
+    "milestone": "first_assessment",
+    "as_of": "2026-11-05",
+    "range_weeks": null,
+    "message": "Your referral is still on the waitlist. We don't have enough information to estimate your wait yet."
+  },
+  "clinic": {
+    "contact": "waitlist@example.org"
+  }
+}
