@@ -13,6 +13,8 @@ This project prototypes wait-time estimates for families waiting for non-emergen
 
 ## Start here
 
+New to coding or working with an AI assistant? Open the [team onboarding guide](docs/team-onboarding.md) and copy its starter prompt. Coding assistants should read [AGENTS.md](AGENTS.md) before editing.
+
 1. Read the [wait-time definition and response contract](docs/wait-time.md).
 2. Use the [available](data/demo/estimate-available.json) and [unavailable](data/demo/estimate-unavailable.json) cases to build and test the family view.
 3. Use the same response contract when adding the API. For the staff demo, show the service waitlist and let a staff member change simulated appointment availability. The family view can then refresh its estimate.
