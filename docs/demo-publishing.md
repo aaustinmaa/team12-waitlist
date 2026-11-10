@@ -1,38 +1,39 @@
-# 演示链接怎么预览、分享和发布
+# Previewing, sharing and publishing the demo
 
-平时改代码时，用 **localhost** 或工具的 **Preview** 自己验收。组员要看代码或给反馈时，发 **GitHub PR**。老师或试用者需要打开一个网址亲自操作时，再准备**在线演示**。把线上演示对应的 GitHub 分支或 commit 记在 PR 或团队笔记里，方便确认别人看到的是哪一版。
+While you work on a change, check it yourself on **localhost** or in your tool's **Preview**. When teammates need to see the code or give feedback, share the **GitHub PR**. When the instructors or test users need to open a web address and try it themselves, share the **live demo**. Note the branch or commit behind any shared link in the PR or the team notebook, so everyone knows which version people saw.
 
-## 现在的在线演示
+## The live demo
 
 **https://aaustinmaa.github.io/team12-waitlist/**
 
-- 由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 自动发布：每次合并进 `main`，GitHub Actions 会先跑测试、再 build，最后发布到 GitHub Pages，通常几分钟内更新。
-- 发布前测试或 build 失败就不会更新，链接继续显示上一个能用的版本。在仓库的 **Actions** 页能看到每次发布对应的 commit。
-- PR 上也会跑同样的测试和 build，但不会发布。
-- 链接是公开的，谁都能打开，所以里面只放合成数据。
+- [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) publishes it automatically. On every merge into `main`, GitHub Actions runs the tests, builds the app and publishes it to GitHub Pages, usually within a few minutes.
+- If the tests or the build fail, nothing is published and the link keeps showing the last working version. The repository's **Actions** tab shows which commit each run published.
+- Pull requests run the same tests and build but don't publish.
+- The link is public, so it must only ever contain synthetic data.
 
-## 其他发布方式
+## Other ways to publish
 
-只有在需要 GitHub Pages 以外的版本时才用下面这些，比如给某条还没合并的分支单独发一个链接。
+Use these only when you need a version other than GitHub Pages, for example a separate link for a branch that hasn't been merged yet.
 
-| 平台 | 什么时候用 | 怎么操作 |
+| Platform | When to use it | How |
 | --- | --- | --- |
-| Google AI Studio | 原型已经在 Build 中运行，且需要别人打开在线版。 | 在 **Preview** 点完主要流程。可用 **Share** 做平台内分享，按接收者账号验证权限。需要独立站点时，维护者在 Build 点 **Publish**，按提示选 Google Cloud 项目或可用的发布选项，完成后打开生成的 Cloud Run 链接测试。发布可能受账号、额度或费用限制。[Google 发布说明](https://ai.google.dev/gemini-api/docs/aistudio-deploying?authuser=1) |
-| Claude 网页版 | 只需要一个在 Claude 里运行的独立页面或互动演示。 | 让 Claude 从确认过的代码做一个 Artifact。先在 Artifact 里试一遍，再用 **Share** 设访问范围。旧版 Artifact 可能显示 **Publish** 或 **Share & copy link**。按账号实际选项操作，并检查接收者是否需要登录。[Claude Artifact 分享说明](https://support.claude.com/en/articles/9547008-share-artifacts) |
-| ChatGPT / Codex | 账号有 **Sites**，而且要把可兼容的项目做成一个可分享网站。 | 在 ChatGPT 或 Codex 里用 **Sites** 从确认过的本地版本准备网站，先保存并预览。维护者确认后部署该版本，再在 Sites 的分享设置里选择受众。确认接收者能打开部署后的链接。[创建 Sites 网站](https://learn.chatgpt.com/docs/sites/creating-a-site) · [Sites 发布和分享](https://learn.chatgpt.com/docs/sites/publishing-and-sharing) |
+| Google AI Studio | The prototype already runs in Build and someone needs an online copy. | Click through the main flows in **Preview**. **Share** shares it inside AI Studio, so check that the recipient's account can open it. For a standalone site, the maintainer clicks **Publish** in Build, follows the prompts to choose a Google Cloud project or another available option, and tests the Cloud Run link it creates. Publishing may be limited by account, quota or cost. [Google's publishing guide](https://aistudio.google.com/docs/aistudio-deploying) |
+| Claude on the web | You only need a single page or interactive demo that runs inside Claude. | Ask Claude to build an Artifact from the confirmed code. Try it in the Artifact, then use **Share** to set who can see it. Older Artifacts may show **Publish** or **Share & copy link**. Use the options your account shows, and check whether recipients need to sign in. [Sharing Claude Artifacts](https://support.claude.com/en/articles/9547008-share-artifacts) |
+| ChatGPT / Codex | Your account has **Sites** and the project is compatible. | In ChatGPT or Codex, use **Sites** to prepare a site from the confirmed local version, then save and preview it. After the maintainer confirms, deploy that version and choose the audience in the Sites sharing settings. Check that recipients can open the deployed link. [Creating a site](https://learn.chatgpt.com/docs/sites/creating-a-site) · [Publishing and sharing Sites](https://learn.chatgpt.com/docs/sites/publishing-and-sharing) |
 
-**组内默认流程：** 先验收 PR，由维护者合并，再从确定的 `main` commit 发布一份课程演示。如果只是给组员先看某条分支，用对应的 PR 和预览，并注明是草稿。选一个能跑通演示的平台就够了。
+**Team default:** review the PR, the maintainer merges it, and the course demo is published from that `main` commit. To show teammates a branch early, share its PR and preview and label it as a draft. One platform that runs the demo is enough.
 
-发布前，维护者核对三件事：
+Before publishing anything else, the maintainer checks three things:
 
-1. 演示里使用合成数据。真实患者资料、私有临床导出、Google Doc 内容和密钥保留在各自的受控位置。
-2. 用接收者的视角打开 URL，确认访问权限、两个主要界面和所需后端都正常。平台内的分享链接、公开网站和本机地址的访问范围不同。
-3. 在团队笔记里记录链接、对应 commit 和预期受众。平台里试出来的代码要经过 GitHub 分支和 PR，才能成为组里下次开发的起点。
+1. The demo uses synthetic data. Real patient records, private clinic exports, Google Doc contents and keys stay where they're controlled.
+2. Open the URL the way the recipient will, and confirm access, both main screens and any backend it needs all work. In-platform share links, public sites and localhost addresses reach different people.
+3. Record the link, its commit and the intended audience in the team notebook. Code tried out on a platform only becomes the starting point for the next change after it goes through a GitHub branch and PR.
 
-如果需要给 AI 一句话，可以发：
+If you want to hand this to an AI in one go:
 
 ~~~text
-请用已确认的 GitHub 版本准备一个演示预览。告诉我使用的 commit、
-预览方式、发布后谁能访问，以及你检查了什么。
-先给我预览和发布选项，由维护者决定用哪个版本、哪个受众发布。
+Prepare a demo preview from the confirmed GitHub version. Tell me which commit you
+used, how to preview it, who will be able to open it once published, and what you
+checked. Show me the preview and publishing options first; the maintainer decides
+which version to publish and for which audience.
 ~~~
