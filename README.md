@@ -18,7 +18,7 @@ This project prototypes wait-time estimates for families waiting for non-emergen
 ## Start here
 
 - [Thur-Team-12 team notebook](https://docs.google.com/document/d/11Euk5jO0elSPw9EsWZbbdWqb8sB7RWLwu1zwEFyLbCA/edit?tab=t.0) for project scope, design decisions, and course records.
-- [Development guide](docs/team-onboarding.md) for getting the latest code, previewing, and contributing from Codex Desktop or Google AI Studio.
+- [Team guide](docs/team-onboarding.md) for viewing the prototype, suggesting changes without coding, and contributing from GitHub, Google AI Studio or Codex Desktop.
 - [Publishing guide](docs/demo-publishing.md) for sharing an approved online demo. AI coding assistants should read [AGENTS.md](AGENTS.md) before editing.
 
 ## Run the prototype
