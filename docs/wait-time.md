@@ -24,3 +24,15 @@ For model development, retain referrals that are still waiting. Their observed w
 | `clinic.contact` | Where the family can ask for help |
 
 An unavailable estimate leaves the referral status visible. When a range is available, label it as an estimate and show when it was calculated. The example range is illustrative.
+
+### Prototype additions
+
+The web prototype adds a few optional fields. The fields above keep their meaning, and a client that ignores the additions still works.
+
+| Field | Meaning |
+| --- | --- |
+| `referral.appointment_on` | Confirmed first-assessment date when the status is `assessment_booked` |
+| `estimate.reason` | Why no range is shown: `intake_incomplete`, `on_hold`, `booked`, or `beyond_horizon` |
+| `clinic.name`, `clinic.phone`, `clinic.hours` | Extra details for the family's contact card |
+
+The `status` value `on_hold` marks a referral that is paused but still on the waitlist. `assessment_booked` marks one with a confirmed first-assessment date.
