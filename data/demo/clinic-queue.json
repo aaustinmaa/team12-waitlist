@@ -1,0 +1,376 @@
+{
+  "_note": "Synthetic demo data for the Team 12 course prototype. No real children, families, or clinic records.",
+  "as_of": "2026-11-05",
+  "clinic": {
+    "name": "Maple Grove Children's Centre",
+    "service": "Speech-language services",
+    "contact": "waitlist@example.org",
+    "phone": "519-555-0142",
+    "hours": "Mon–Fri, 9:00–4:30"
+  },
+  "capacity": {
+    "assessment_slots_per_week": 5
+  },
+  "referrals": [
+    {
+      "id": "r-0101",
+      "received_on": "2026-06-30",
+      "status": "assessment_booked",
+      "age_group": "4–5 years",
+      "referral_source": "Child care centre",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-10"
+    },
+    {
+      "id": "r-0102",
+      "received_on": "2026-07-07",
+      "status": "assessment_booked",
+      "age_group": "4–5 years",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-12"
+    },
+    {
+      "id": "r-0103",
+      "received_on": "2026-07-14",
+      "status": "assessment_booked",
+      "age_group": "18–24 months",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-17"
+    },
+    {
+      "id": "r-0104",
+      "received_on": "2026-07-21",
+      "status": "assessment_booked",
+      "age_group": "18–24 months",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-19"
+    },
+    {
+      "id": "r-0105",
+      "received_on": "2026-07-28",
+      "status": "assessment_booked",
+      "age_group": "2–3 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-24"
+    },
+    {
+      "id": "demo-003",
+      "received_on": "2026-08-04",
+      "status": "assessment_booked",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null,
+      "appointment_on": "2026-11-26"
+    },
+    {
+      "id": "r-0106",
+      "received_on": "2026-08-06",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0107",
+      "received_on": "2026-08-09",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0108",
+      "received_on": "2026-08-11",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0109",
+      "received_on": "2026-08-14",
+      "status": "on_hold",
+      "age_group": "2–3 years",
+      "referral_source": "Child care centre",
+      "intake_complete": true,
+      "hold": {
+        "start": "2026-10-01",
+        "end": null,
+        "reason": "Family requested a pause"
+      }
+    },
+    {
+      "id": "r-0110",
+      "received_on": "2026-08-18",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0111",
+      "received_on": "2026-08-22",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0112",
+      "received_on": "2026-08-25",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": {
+        "start": "2026-09-08",
+        "end": "2026-09-29",
+        "reason": "Family travelling"
+      }
+    },
+    {
+      "id": "r-0113",
+      "received_on": "2026-08-29",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0114",
+      "received_on": "2026-09-02",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0115",
+      "received_on": "2026-09-04",
+      "status": "on_hold",
+      "age_group": "2–3 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": {
+        "start": "2026-10-20",
+        "end": null,
+        "reason": "Awaiting hearing test results"
+      }
+    },
+    {
+      "id": "r-0116",
+      "received_on": "2026-09-08",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0117",
+      "received_on": "2026-09-10",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0118",
+      "received_on": "2026-09-12",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "Child care centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0119",
+      "received_on": "2026-09-16",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0120",
+      "received_on": "2026-09-18",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0121",
+      "received_on": "2026-09-21",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0122",
+      "received_on": "2026-09-23",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0123",
+      "received_on": "2026-09-25",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0124",
+      "received_on": "2026-09-29",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0125",
+      "received_on": "2026-10-03",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0126",
+      "received_on": "2026-10-07",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0127",
+      "received_on": "2026-10-11",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0128",
+      "received_on": "2026-10-13",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0129",
+      "received_on": "2026-10-16",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0130",
+      "received_on": "2026-10-19",
+      "status": "waiting_for_assessment",
+      "age_group": "3–4 years",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0131",
+      "received_on": "2026-10-21",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Self-referral",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "demo-001",
+      "received_on": "2026-10-22",
+      "status": "waiting_for_assessment",
+      "age_group": "2–3 years",
+      "referral_source": "Family doctor",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0132",
+      "received_on": "2026-10-24",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "r-0133",
+      "received_on": "2026-10-28",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "EarlyON centre",
+      "intake_complete": true,
+      "hold": null
+    },
+    {
+      "id": "demo-002",
+      "received_on": "2026-10-29",
+      "status": "waiting_for_assessment",
+      "age_group": "4–5 years",
+      "referral_source": "Pediatrician",
+      "intake_complete": false,
+      "hold": null
+    },
+    {
+      "id": "r-0134",
+      "received_on": "2026-10-31",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "EarlyON centre",
+      "intake_complete": false,
+      "hold": null
+    },
+    {
+      "id": "r-0135",
+      "received_on": "2026-11-04",
+      "status": "waiting_for_assessment",
+      "age_group": "18–24 months",
+      "referral_source": "Child care centre",
+      "intake_complete": true,
+      "hold": null
+    }
+  ]
+}
