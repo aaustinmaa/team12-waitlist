@@ -11,6 +11,10 @@ This project prototypes wait-time estimates for families waiting for non-emergen
 | [`data/demo/`](data/demo/) | Synthetic cases for development and walkthroughs |
 | [`docs/`](docs/) | Shared definitions and response contract |
 
+## See the prototype
+
+**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer, with no sign-in and nothing to install. It updates a few minutes after each merge into `main`. Every page uses fictional, synthetic data, and **Reset demo** on the home page undoes changes made in the staff dashboard.
+
 ## Start here
 
 - [Thur-Team-12 team notebook](https://docs.google.com/document/d/11Euk5jO0elSPw9EsWZbbdWqb8sB7RWLwu1zwEFyLbCA/edit?tab=t.0) for project scope, design decisions, and course records.

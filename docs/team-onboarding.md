@@ -10,7 +10,9 @@
 | 开始一项改动 | 从最新的 `main` 开一个 branch，例如 `codex/yourname-change`。Branch 就是这次改动的工作副本。 |
 | 看改完的网页 | Codex Desktop 用本机 localhost。Google AI Studio 用 Build 的 Preview。 |
 | 把改动交给组里看 | Commit 保存改动，Push 上传到自己的分支，Draft PR 把改动和 `main` 并排给组里看。 |
-| 让组员或老师打开一个网页链接 | 用已经获准的演示版本发布一个在线链接。详见[发布与分享](demo-publishing.md)。 |
+| 让组员或老师打开一个网页链接 | 发在线演示 https://aaustinmaa.github.io/team12-waitlist/。PR 合并进 `main` 后几分钟会自动更新。详见[发布与分享](demo-publishing.md)。 |
+
+> **只想看原型、不改代码？** 直接打开在线演示 https://aaustinmaa.github.io/team12-waitlist/ 就行，手机或电脑都可以，不用登录、不用 clone，也不用 AI。它显示的是最新合并进 `main` 的版本。
 
 组里共用一条 `main`。每项改动用一个分支和一个 PR。收到反馈就更新原分支，GitHub 会把后续提交加到同一个 PR。
 
@@ -39,7 +41,7 @@
 请把 PR 链接发给我，留给维护者 review 和 merge。
 ~~~
 
-`localhost` 只在启动服务的那台电脑上打开。关闭服务后，叫 Codex 重新启动就行。目前仓库只有 scaffold，所以启动方式和端口要等真正的应用加入后才能确认。
+`localhost` 只在启动服务的那台电脑上打开。关闭服务后，叫 Codex 重新启动就行。网页应用在 `web/`，启动命令见 [README](../README.md#run-the-prototype)，开发服务一般在 http://localhost:5173。
 
 ## 用网页版 Google AI Studio
 
@@ -61,6 +63,8 @@
 ~~~
 
 ## 在 GitHub 审阅和合并
+
+`main` 受保护：改动都要走 PR，必须由维护者（code owner）approve 才能合并，组员之间的 approve 不算数。维护者自己的 PR 由维护者直接合并。
 
 1. **开 PR。** 分支提交到 GitHub 后，点 **Compare & pull request**，或进入 **Pull requests → New pull request**。确认 **base = main**、**compare = 你自己的分支**，然后选 **Create draft pull request**。填好改了什么、怎么验收。[GitHub 开 PR 指南](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
 2. **Review。** 打开 **Files changed**，照描述里的步骤检查。有反馈就在原分支修改并再次 Push。作者确认后点 **Ready for review**，把 PR 链接交给维护者。[GitHub 草稿 PR 指南](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request)

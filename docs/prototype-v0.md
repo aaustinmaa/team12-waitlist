@@ -2,6 +2,8 @@
 
 Prototype for D5 and the Week 8 peer evaluation. It runs entirely in the browser with synthetic data for one fictional clinic, Maple Grove Children's Centre, and one milestone: the first speech-language assessment.
 
+Live demo: https://aaustinmaa.github.io/team12-waitlist/ (updates after each merge into `main`).
+
 ## What it shows
 
 **Family view** (`#/family/:id`, phone and computer layouts)
