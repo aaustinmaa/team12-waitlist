@@ -2,6 +2,19 @@
 
 平时改代码时，用 **localhost** 或工具的 **Preview** 自己验收。组员要看代码或给反馈时，发 **GitHub PR**。老师或试用者需要打开一个网址亲自操作时，再准备**在线演示**。把线上演示对应的 GitHub 分支或 commit 记在 PR 或团队笔记里，方便确认别人看到的是哪一版。
 
+## 现在的在线演示
+
+**https://aaustinmaa.github.io/team12-waitlist/**
+
+- 由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 自动发布：每次合并进 `main`，GitHub Actions 会先跑测试、再 build，最后发布到 GitHub Pages，通常几分钟内更新。
+- 发布前测试或 build 失败就不会更新，链接继续显示上一个能用的版本。在仓库的 **Actions** 页能看到每次发布对应的 commit。
+- PR 上也会跑同样的测试和 build，但不会发布。
+- 链接是公开的，谁都能打开，所以里面只放合成数据。
+
+## 其他发布方式
+
+只有在需要 GitHub Pages 以外的版本时才用下面这些，比如给某条还没合并的分支单独发一个链接。
+
 | 平台 | 什么时候用 | 怎么操作 |
 | --- | --- | --- |
 | Google AI Studio | 原型已经在 Build 中运行，且需要别人打开在线版。 | 在 **Preview** 点完主要流程。可用 **Share** 做平台内分享，按接收者账号验证权限。需要独立站点时，维护者在 Build 点 **Publish**，按提示选 Google Cloud 项目或可用的发布选项，完成后打开生成的 Cloud Run 链接测试。发布可能受账号、额度或费用限制。[Google 发布说明](https://ai.google.dev/gemini-api/docs/aistudio-deploying?authuser=1) |
