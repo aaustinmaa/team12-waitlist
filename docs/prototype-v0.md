@@ -19,6 +19,19 @@ Live demo: https://aaustinmaa.github.io/team12-waitlist/ (updates after each mer
 - Weekly first-assessment capacity (1–10 slots, usual 5). Changing it re-runs every family's estimate and the "a family referred today would be told" range.
 - Waitlist with filters and ID search. Holds and incomplete intake are flagged, and each row shows what the family currently sees.
 - **Preview** opens the family view for any referral. **Intake done** marks missing intake information complete so that referral gets an estimate.
+- **Export CSV** downloads the referrals currently shown (filter and search applied), with what each family sees. Referral IDs only, no names.
+
+**Staff reports** (`#/staff/reports`, the *Reports* tab on the staff dashboard)
+
+For a staff member preparing a quarterly report for a manager. Pick a quarter; everything on the page follows it.
+
+- Tiles: referrals received, first assessments, median wait to first assessment, waitlist size at quarter end, and how often the wait estimate held, each compared with the previous quarter.
+- Charts (the selected quarter is shaded): waitlist size by week, referrals in vs. first assessments out by month, and median and 90th-percentile wait by month.
+- *Did the estimate hold?*: for every child assessed in the quarter, the range the family would have seen once intake was complete next to the wait that actually followed. A 10th–90th percentile range should hold for about 8 in 10 families.
+- Breakdowns by referral source and age group.
+- Downloads: the quarter's referrals (CSV), a one-row-per-quarter summary (CSV), and *Print or save as PDF*. Each chart also has a *Show as table* view.
+
+The history behind these numbers is `data/demo/clinic-history.json`: 182 synthetic referrals that had a first assessment or were withdrawn between April 2025 and November 2026. `data/demo/generate-history.mjs` creates it with a fixed seed. Combined with the current queue, it shows referrals slowly outpacing about two first assessments a week, so the median wait grows from about 10 to about 18 weeks. The estimate check is a back-test made with the generator, not output from the simulated estimator.
 
 The capacity and intake changes are shared between the two views and saved in the browser. Use **Reset demo** on the demo home before each participant.
 

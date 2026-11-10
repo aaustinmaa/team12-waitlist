@@ -36,3 +36,21 @@ The web prototype adds a few optional fields. The fields above keep their meanin
 | `clinic.name`, `clinic.phone`, `clinic.hours` | Extra details for the family's contact card |
 
 The `status` value `on_hold` marks a referral that is paused but still on the waitlist. `assessment_booked` marks one with a confirmed first-assessment date.
+
+## Referral history for staff reports
+
+`data/demo/clinic-history.json` holds referrals that have left the waitlist. The Reports page joins it with `clinic-queue.json`, which holds the referrals still waiting.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Synthetic referral ID (`h-` prefix) |
+| `received_on` | Date the clinic logged the referral |
+| `intake_completed_on` | Date intake information was complete, so an estimate could be shown |
+| `age_group`, `referral_source` | Same values as the queue |
+| `outcome` | `assessed` (first assessment done) or `withdrawn` |
+| `closed_on` | First-assessment date, or the date the referral was withdrawn |
+| `withdrawn_reason` | Only when `outcome` is `withdrawn` |
+| `hold` | Same shape as the queue: `start`, `end`, `reason` |
+| `estimate_at_intake` | Back-test: `as_of`, `lower_weeks`, `upper_weeks` of the range the family would have seen at `intake_completed_on`. `null` for withdrawn referrals |
+
+Wait to first assessment in the reports is `closed_on` minus `received_on`, holds included. "Estimate held" means the weeks from `estimate_at_intake.as_of` to `closed_on` fell within `lower_weeks`–`upper_weeks`.

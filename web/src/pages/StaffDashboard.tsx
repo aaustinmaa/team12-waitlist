@@ -20,7 +20,9 @@ import { useDemo } from "../lib/demoState";
 import { fmtLong, fmtShort } from "../lib/dates";
 import type { StaffRow } from "../lib/types";
 import { FamilyReferralView } from "../components/FamilyReferralView";
+import { StaffTabs } from "../components/StaffTabs";
 import { Card, Chip, REASON_LABEL, STATUS_LABEL, STATUS_TONE, weeksLabel } from "../components/ui";
+import { downloadCsv, toCsv } from "../lib/csv";
 
 type Filter = "all" | "ready" | "hold" | "intake" | "booked";
 
@@ -58,6 +60,7 @@ export function StaffDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <StaffTabs />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -95,16 +98,26 @@ export function StaffDashboard() {
             <h2 className="text-lg font-semibold text-slate-900">Waitlist</h2>
             <p className="text-sm text-slate-500">Ordered by referral date. Urgent referrals and holds are handled by clinical staff.</p>
           </div>
-          <label className="relative block md:w-64">
-            <span className="sr-only">Search referral ID</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search referral ID"
-              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500"
-            />
-          </label>
+          <div className="flex gap-2">
+            <label className="relative block min-w-0 flex-1 md:w-64 md:flex-none">
+              <span className="sr-only">Search referral ID</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search referral ID"
+                className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500"
+              />
+            </label>
+            <button
+              onClick={() => exportWaitlist(shown, filter, state.slotsPerWeek)}
+              disabled={shown.length === 0}
+              className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40"
+              title="Download the referrals shown below as a spreadsheet file"
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
         <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 py-2 sm:px-5" role="tablist" aria-label="Filter waitlist">
           {FILTERS.map((f) => (
@@ -207,6 +220,52 @@ export function StaffDashboard() {
       )}
     </div>
   );
+}
+
+/** Downloads the rows currently shown (filter and search applied). No names, only referral IDs. */
+function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number) {
+  const header = [
+    "place_in_line",
+    "referral_id",
+    "received_on",
+    "days_waiting",
+    "age_group",
+    "referral_source",
+    "status",
+    "intake_complete",
+    "hold_start",
+    "hold_end",
+    "hold_reason",
+    "appointment_on",
+    "family_sees",
+    "estimate_lower_weeks",
+    "estimate_upper_weeks",
+    "no_estimate_reason",
+    "estimate_as_of",
+    "slots_per_week",
+  ];
+  const body = rows.map((r) => [
+    r.position,
+    r.id,
+    r.received_on,
+    r.days_waiting,
+    r.age_group,
+    r.referral_source,
+    STATUS_LABEL[r.status],
+    r.intake_complete ? "yes" : "no",
+    r.hold?.start,
+    r.hold?.end,
+    r.hold?.reason,
+    r.appointment_on,
+    r.estimate.range_weeks ? "estimate" : r.estimate.reason === "booked" ? "confirmed date" : "no estimate",
+    r.estimate.range_weeks?.lower,
+    r.estimate.range_weeks?.upper,
+    r.estimate.reason && r.estimate.reason !== "booked" ? REASON_LABEL[r.estimate.reason] : null,
+    r.estimate.as_of,
+    slots,
+  ]);
+  const name = filter === "all" ? "waitlist" : `waitlist-${filter}`;
+  downloadCsv(`${name}-${AS_OF}.csv`, toCsv(header, body));
 }
 
 function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number) => void }) {
