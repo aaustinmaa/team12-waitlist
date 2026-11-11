@@ -41,6 +41,7 @@ export function StaffDashboard() {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
 
   const counts = Object.fromEntries(FILTERS.map((f) => [f.key, rows.filter(f.test).length])) as Record<Filter, number>;
   const active = FILTERS.find((f) => f.key === filter)!;
@@ -98,26 +99,19 @@ export function StaffDashboard() {
             <h2 className="text-lg font-semibold text-slate-900">Waitlist</h2>
             <p className="text-sm text-slate-500">Ordered by referral date. Urgent referrals and holds are handled by clinical staff.</p>
           </div>
-          <div className="flex gap-2">
-            <label className="relative block min-w-0 flex-1 md:w-64 md:flex-none">
-              <span className="sr-only">Search referral ID</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search referral ID"
-                className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500"
-              />
-            </label>
-            <button
-              onClick={() => exportWaitlist(shown, filter, state.slotsPerWeek)}
-              disabled={shown.length === 0}
-              className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40"
-              title="Download the referrals shown below as a spreadsheet file"
-            >
-              Export CSV
-            </button>
-          </div>
+          <label className="relative block min-w-0 md:w-64">
+            <span className="sr-only">Search referral ID</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSaved(null);
+              }}
+              placeholder="Search referral ID"
+              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500"
+            />
+          </label>
         </div>
         <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 py-2 sm:px-5" role="tablist" aria-label="Filter waitlist">
           {FILTERS.map((f) => (
@@ -125,12 +119,37 @@ export function StaffDashboard() {
               key={f.key}
               role="tab"
               aria-selected={filter === f.key}
-              onClick={() => setFilter(f.key)}
+              onClick={() => {
+                setFilter(f.key);
+                setSaved(null);
+              }}
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${filter === f.key ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
             >
               {f.label} <span className={filter === f.key ? "text-slate-300" : "text-slate-400"}>{counts[f.key]}</span>
             </button>
           ))}
+        </div>
+
+        {/* Download sits with the list it downloads, and says which rows go in the file. */}
+        <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p role="status" className="text-sm text-slate-600">
+            {saved ? (
+              <>
+                Downloaded <span className="font-medium text-slate-900">{saved}</span>. Look in your Downloads folder.
+              </>
+            ) : (
+              <>
+                Download the {shown.length} {shown.length === 1 ? "referral" : "referrals"} shown below as a spreadsheet (.csv) for Excel or Google Sheets. Referral IDs only, no names.
+              </>
+            )}
+          </p>
+          <button
+            onClick={() => setSaved(exportWaitlist(shown, filter, state.slotsPerWeek))}
+            disabled={shown.length === 0}
+            className="shrink-0 rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-40"
+          >
+            Download spreadsheet
+          </button>
         </div>
 
         {/* Desktop table */}
@@ -223,7 +242,7 @@ export function StaffDashboard() {
 }
 
 /** Downloads the rows currently shown (filter and search applied). No names, only referral IDs. */
-function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number) {
+function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number): string {
   const header = [
     "place_in_line",
     "referral_id",
@@ -265,7 +284,9 @@ function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number) {
     slots,
   ]);
   const name = filter === "all" ? "waitlist" : `waitlist-${filter}`;
-  downloadCsv(`${name}-${AS_OF}.csv`, toCsv(header, body));
+  const filename = `${name}-${AS_OF}.csv`;
+  downloadCsv(filename, toCsv(header, body));
+  return filename;
 }
 
 function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number) => void }) {

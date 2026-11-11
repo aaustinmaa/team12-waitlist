@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
 import { ShieldCheck } from "lucide-react";
 import { CLINIC } from "../lib/api";
@@ -52,8 +52,6 @@ export function ReportsPage() {
   const waitPoints: TimePoint[] = monthly.map((mm) => ({ date: mm.date, values: { median: mm.medianWait, p90: mm.p90Wait } }));
   const monthOf = (p: TimePoint) => MONTH_YEAR.format(new Date(`${p.date}T00:00:00Z`));
 
-  const fileStem = `waitlist-report-${quarter.key}`;
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <StaffTabs />
@@ -86,16 +84,10 @@ export function ReportsPage() {
             ))}
           </select>
         </label>
-        <div className="flex flex-wrap gap-2 sm:ml-auto">
-          <ActionButton onClick={() => downloadCsv(`${fileStem}-referrals.csv`, toCsv(...unpack(quarterTable(quarter))))}>
-            Referrals this quarter (CSV)
-          </ActionButton>
-          <ActionButton onClick={() => downloadCsv(`waitlist-report-summary-${REPORT_AS_OF}.csv`, toCsv(...unpack(summaryTable())))}>
-            Summary, all quarters (CSV)
-          </ActionButton>
-          <ActionButton onClick={() => window.print()}>Print or save as PDF</ActionButton>
-        </div>
+        <p className="text-sm text-slate-500">Every number, chart and download on this page follows the quarter you pick.</p>
       </div>
+
+      <DownloadCard quarter={quarter} />
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <Tile label="Referrals received" value={String(s.referrals)} sub={countDelta(s.referrals, prev?.referrals)} />
@@ -288,11 +280,72 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "No change");
 const unpack = (t: { header: string[]; rows: Parameters<typeof toCsv>[1] }) => [t.header, t.rows] as const;
 
-function ActionButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+/**
+ * The three ways to take this report out of the app. Each option says what the file is, what is in it
+ * and what to open it with, so staff know which button to press before they press it.
+ */
+function DownloadCard({ quarter }: { quarter: Quarter }) {
+  const [saved, setSaved] = useState<string | null>(null);
+  const referrals = useMemo(() => quarterTable(quarter), [quarter]);
+  const summary = useMemo(summaryTable, []);
+  const save = (filename: string, t: Parameters<typeof unpack>[0]) => {
+    downloadCsv(filename, toCsv(...unpack(t)));
+    setSaved(filename);
+  };
+
   return (
-    <button onClick={onClick} className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">
-      {children}
-    </button>
+    <Card className="mt-5 print:hidden">
+      <h2 className="text-lg font-semibold text-slate-900">Download this report</h2>
+      <p className="mt-1 text-sm text-slate-600">
+        Three ways to share these numbers with your manager or put them in your own report. Files use referral IDs only, never names.
+      </p>
+      <ul className="mt-4 grid gap-3 md:grid-cols-3">
+        <DownloadOption
+          title={`Referrals in ${quarter.label}`}
+          kind="Spreadsheet (.csv) · opens in Excel or Google Sheets"
+          body={`One row for each of the ${referrals.rows.length} children on the waitlist at any point in the quarter: dates, wait, outcome and the estimate they saw.`}
+          button="Download spreadsheet"
+          onClick={() => save(`waitlist-report-${quarter.key}-referrals.csv`, referrals)}
+        />
+        <DownloadOption
+          title="Quarter-by-quarter summary"
+          kind="Spreadsheet (.csv) · opens in Excel or Google Sheets"
+          body={`One row for each of the ${summary.rows.length} quarters from ${QUARTERS[0].label} on, with the numbers shown at the top of this page. Good for making your own charts.`}
+          button="Download spreadsheet"
+          onClick={() => save(`waitlist-report-summary-${REPORT_AS_OF}.csv`, summary)}
+        />
+        <DownloadOption
+          title="This page as a PDF"
+          kind={`PDF · all charts and numbers for ${quarter.label}`}
+          body="Opens your browser's print window. To get a file instead of paper, choose “Save as PDF” as the printer."
+          button="Print or save as PDF"
+          onClick={() => window.print()}
+        />
+      </ul>
+      <p role="status" className="mt-3 min-h-5 text-sm text-slate-600">
+        {saved && (
+          <>
+            Downloaded <span className="font-medium text-slate-900">{saved}</span>. Look in your Downloads folder.
+          </>
+        )}
+      </p>
+    </Card>
+  );
+}
+
+function DownloadOption({ title, kind, body, button, onClick }: { title: string; kind: string; body: string; button: string; onClick: () => void }) {
+  return (
+    <li className="flex flex-col rounded-xl border border-slate-200 p-4">
+      <h3 className="font-semibold text-slate-900">{title}</h3>
+      <p className="mt-0.5 text-xs font-medium text-slate-500">{kind}</p>
+      <p className="mt-2 flex-1 text-sm text-slate-600">{body}</p>
+      <button
+        onClick={onClick}
+        className="mt-3 rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+      >
+        {button}
+      </button>
+    </li>
   );
 }
 
