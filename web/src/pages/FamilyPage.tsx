@@ -8,6 +8,8 @@ export const FAMILY_CASES = [
   { id: "demo-001", label: "Estimate available", hint: "Waiting, with a wait range" },
   { id: "demo-002", label: "No estimate yet", hint: "Waiting, intake info still under review" },
   { id: "demo-003", label: "Assessment booked", hint: "Confirmed first-assessment date" },
+  { id: "cedar-001", label: "Cedar Park referral", hint: "Waiting for a first assessment" },
+  { id: "cedar-002", label: "Partner-site assessment", hint: "Cedar Park referral with a confirmed appointment at Maple Grove" },
 ];
 
 export function FamilyPage() {
@@ -30,7 +32,7 @@ export function FamilyPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <div className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-teal-700">{CLINIC.name} · Family portal</p>
+        <p className="text-sm font-medium text-teal-700">{data.clinic.name} · Family portal</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Your child's referral</h1>
         <p className="mt-1 text-slate-600">{data.referral.service}</p>
       </div>
@@ -56,7 +58,7 @@ export function FamilyPage() {
         </div>
         {!isBaseline && (
           <p className="mt-3 flex flex-wrap items-center gap-2 text-slate-500">
-            Clinic settings were changed in the staff dashboard ({state.slotsPerWeek} slots/week).
+            The demo has changes from the staff dashboard.
             <button onClick={reset} className="inline-flex items-center gap-1 font-medium text-teal-700 underline">
               <RefreshCw className="size-3.5" aria-hidden /> Reset demo
             </button>

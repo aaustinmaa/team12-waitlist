@@ -82,6 +82,9 @@ function StatusCard({ data, compact }: { data: FamilyReferralResponse; compact: 
         <div className="mt-4 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
           <p className="text-sm text-emerald-900">First assessment</p>
           <p className="text-lg font-semibold text-emerald-950">{fmtWeekday(referral.appointment_on)}</p>
+          {referral.appointment_site && (
+            <p className="mt-1 text-sm text-emerald-900">{referral.appointment_site.name} · {referral.appointment_site.location}</p>
+          )}
           <p className="mt-1 text-sm text-emerald-900">The clinic sent you the time and location when they booked it.</p>
         </div>
       )}

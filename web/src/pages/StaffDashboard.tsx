@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate, useParams } from "react-router";
 import {
   CalendarCheck,
   ClipboardCheck,
@@ -15,7 +15,10 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { AS_OF, CLINIC, DEFAULT_SLOTS, getFamilyReferral, listQueue, newReferralEstimate } from "../lib/api";
+import { AS_OF, getFamilyReferral, listQueue, newReferralEstimate } from "../lib/api";
+import { CLINICS, DEFAULT_CLINIC_ID, localSlots, minimumLocalSlots } from "../../../backend/api/network";
+import { ClinicNetwork } from "../components/ClinicNetwork";
+import { ClinicSelector } from "../components/ClinicSelector";
 import { useDemo } from "../lib/demoState";
 import { fmtLong, fmtShort } from "../lib/dates";
 import type { StaffRow } from "../lib/types";
@@ -33,9 +36,18 @@ const FILTERS: { key: Filter; label: string; test: (r: StaffRow) => boolean }[] 
 ];
 
 export function StaffDashboard() {
+  const { clinicId = DEFAULT_CLINIC_ID } = useParams();
+  if (!Object.hasOwn(CLINICS, clinicId)) return <Navigate to="/staff" replace />;
+  return <ClinicDashboard key={clinicId} clinicId={clinicId} />;
+}
+
+function ClinicDashboard({ clinicId }: { clinicId: string }) {
   const { state, setSlots, completeIntake, reset, isBaseline } = useDemo();
-  const rows = useMemo(() => listQueue(state), [state]);
-  const newRange = useMemo(() => newReferralEstimate(state), [state]);
+  const { clinic, capacity } = CLINICS[clinicId];
+  const slots = localSlots(state, clinicId);
+  const minSlots = minimumLocalSlots(state, clinicId);
+  const rows = useMemo(() => listQueue(state, clinicId), [state, clinicId]);
+  const newRange = useMemo(() => newReferralEstimate(state, clinicId), [state, clinicId]);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -62,20 +74,23 @@ export function StaffDashboard() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Chip tone="rose" icon={<ShieldCheck className="size-3.5" aria-hidden />}>Staff only</Chip>
-            <span className="text-sm text-slate-500">Intake team · {CLINIC.name}</span>
+            <span className="text-sm text-slate-500">Intake team · {clinic.name}</span>
           </div>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Staff dashboard</h1>
-          <p className="mt-1 text-slate-600">{CLINIC.service} · first-assessment waitlist · data as of {fmtLong(AS_OF)}</p>
+          <p className="mt-1 text-slate-600">{clinic.service} · first-assessment waitlist · data as of {fmtLong(AS_OF)}</p>
         </div>
-        {!isBaseline && (
-          <button onClick={reset} className="inline-flex items-center gap-1.5 self-start rounded-lg px-3 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-white sm:self-auto">
-            <RotateCcw className="size-4" aria-hidden /> Reset demo
-          </button>
-        )}
+        <div className="flex flex-wrap items-end gap-3">
+          <ClinicSelector clinicId={clinicId} />
+          {!isBaseline && (
+            <button onClick={reset} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-white">
+              <RotateCcw className="size-4" aria-hidden /> Reset demo
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3 lg:gap-6">
-        <CapacityCard slots={state.slotsPerWeek} setSlots={setSlots} />
+        <CapacityCard slots={slots} minSlots={minSlots} usual={capacity.assessment_slots_per_week} setSlots={(n) => setSlots(n, clinicId)} />
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-2 xl:grid-cols-4">
           <Stat icon={ListOrdered} label="Ready to book" value={counts.ready} sub="in line for a first assessment" />
           <Stat icon={FileWarning} label="Needs intake info" value={counts.intake} sub="no estimate shown to family" tone="amber" />
@@ -84,10 +99,12 @@ export function StaffDashboard() {
           <div className="col-span-2 rounded-2xl border-2 border-dashed border-indigo-200 bg-white p-4 xl:col-span-4">
             <p className="text-sm text-slate-500">A family referred today would be told</p>
             <p className="mt-1 text-2xl font-bold text-indigo-950">{newRange ? `${newRange.lower}–${newRange.upper} weeks` : "No estimate (too long to estimate)"}</p>
-            <p className="mt-1 text-sm text-slate-500">at {state.slotsPerWeek} first-assessment slots per week. Change the capacity to see how every family's estimate moves.</p>
+            <p className="mt-1 text-sm text-slate-500">Based on this clinic’s queue and confirmed capacity. A new referral has no travel preferences yet.</p>
           </div>
         </div>
       </div>
+
+      <ClinicNetwork clinicId={clinicId} rows={rows} />
 
       <Card className="mt-6 !p-0">
         <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
@@ -209,13 +226,13 @@ export function StaffDashboard() {
   );
 }
 
-function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number) => void }) {
+function CapacityCard({ slots, minSlots, usual, setSlots }: { slots: number; minSlots: number; usual: number; setSlots: (n: number) => void }) {
   return (
     <Card>
       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Assessment capacity</h2>
-      <p className="mt-1 text-sm text-slate-600">First speech-language assessment slots the clinic plans to offer each week.</p>
+      <p className="mt-1 text-sm text-slate-600">Weekly first-assessment slots before any commitments to partner clinics.</p>
       <div className="mt-4 flex items-center justify-between gap-3">
-        <button onClick={() => setSlots(slots - 1)} disabled={slots <= 1} className="grid size-11 place-items-center rounded-xl ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40" aria-label="Fewer slots">
+        <button onClick={() => setSlots(slots - 1)} disabled={slots <= minSlots} className="grid size-11 place-items-center rounded-xl ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40" aria-label="Fewer slots">
           <Minus className="size-5" />
         </button>
         <p className="text-center">
@@ -228,7 +245,7 @@ function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number
       </div>
       <input
         type="range"
-        min={1}
+        min={minSlots}
         max={10}
         value={slots}
         onChange={(e) => setSlots(Number(e.target.value))}
@@ -236,11 +253,11 @@ function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number
         aria-label="Slots per week"
       />
       <div className="flex justify-between text-xs text-slate-400">
-        <span>1</span>
-        <span>Usual: {DEFAULT_SLOTS}</span>
+        <span>{minSlots}</span>
+        <span>Usual: {usual}</span>
         <span>10</span>
       </div>
-      <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">Simulation for the demo. Changes update every family's estimate right away.</p>
+      <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">{minSlots > 1 ? `Up to ${minSlots} slots per week are committed to partner clinics.` : "Changes recalculate this clinic’s wait estimates."}</p>
     </Card>
   );
 }
