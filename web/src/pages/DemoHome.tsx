@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { ArrowRight, ChevronDown, LayoutDashboard, RotateCcw, Smartphone } from "lucide-react";
 import { useDemo } from "../lib/demoState";
-import { CLINIC } from "../lib/api";
+import { ClinicSelector } from "../components/ClinicSelector";
 import { FAMILY_CASES } from "./FamilyPage";
 
 const TASKS = [
@@ -54,7 +54,7 @@ export function DemoHome() {
         <p className="mt-4 text-lg text-slate-600">
           Families see their confirmed referral status and, separately, an estimated wait range for the first assessment. The clinic's intake team sees the waitlist and can test how appointment capacity changes those estimates.
         </p>
-        <p className="mt-3 text-sm text-slate-500">{CLINIC.name} is a fictional clinic. Every referral here is synthetic.</p>
+        <p className="mt-3 text-sm text-slate-500">The clinics and referrals in this demo are fictional.</p>
       </section>
 
       <section className="mt-10 grid gap-5 md:grid-cols-2">
@@ -84,9 +84,10 @@ export function DemoHome() {
           <ul className="mt-5 flex-1 list-disc space-y-1.5 pl-5 text-sm text-slate-600">
             <li>The whole first-assessment waitlist, with holds and missing intake info flagged</li>
             <li>Adjust weekly assessment capacity and watch estimates update</li>
-            <li>Preview exactly what any family sees</li>
+            <li>Connect clinics and preview shared assessment capacity</li>
           </ul>
-          <Link to="/staff" className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <div className="mt-5"><ClinicSelector /></div>
+          <Link to="/staff" className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800">
             Open staff dashboard <ArrowRight className="size-4" aria-hidden />
           </Link>
         </div>

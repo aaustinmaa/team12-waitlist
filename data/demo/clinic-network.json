@@ -1,0 +1,448 @@
+{
+  "service_id": "speech-language-assessment",
+  "sites": [
+    {
+      "id": "maple-site",
+      "clinic_id": "maple-grove",
+      "name": "Maple Grove assessment site",
+      "location": "Maple Grove, Waterloo Region"
+    },
+    {
+      "id": "cedar-site",
+      "clinic_id": "cedar-park",
+      "name": "Cedar Park assessment site",
+      "location": "Cedar Park, Waterloo Region"
+    }
+  ],
+  "partner_queue": {
+    "as_of": "2026-11-05",
+    "clinic": {
+      "name": "Cedar Park Children's Centre",
+      "service": "Speech-language services",
+      "contact": "cedar-waitlist@example.org",
+      "phone": "519-555-0168",
+      "hours": "Mon–Fri, 8:30–4:00"
+    },
+    "capacity": {
+      "assessment_slots_per_week": 6
+    },
+    "referrals": [
+      {
+        "id": "cedar-r1",
+        "received_on": "2026-10-01",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-001",
+        "received_on": "2026-10-02",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r3",
+        "received_on": "2026-10-03",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r4",
+        "received_on": "2026-10-04",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r5",
+        "received_on": "2026-10-05",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r6",
+        "received_on": "2026-10-06",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r7",
+        "received_on": "2026-10-07",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r8",
+        "received_on": "2026-10-08",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r9",
+        "received_on": "2026-10-09",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r10",
+        "received_on": "2026-10-10",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r11",
+        "received_on": "2026-10-11",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r12",
+        "received_on": "2026-10-12",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r13",
+        "received_on": "2026-10-13",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r14",
+        "received_on": "2026-10-14",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r15",
+        "received_on": "2026-10-15",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r16",
+        "received_on": "2026-10-16",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": null
+      },
+      {
+        "id": "cedar-r17",
+        "received_on": "2026-10-17",
+        "status": "waiting_for_assessment",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": false,
+        "hold": null
+      },
+      {
+        "id": "cedar-r18",
+        "received_on": "2026-10-18",
+        "status": "on_hold",
+        "age_group": "4–5 years",
+        "referral_source": "Pediatrician",
+        "intake_complete": true,
+        "hold": {
+          "start": "2026-11-02",
+          "end": null,
+          "reason": "Family requested a pause"
+        }
+      },
+      {
+        "id": "cedar-002",
+        "received_on": "2026-10-19",
+        "status": "assessment_booked",
+        "age_group": "4–5 years",
+        "referral_source": "Self-referral",
+        "intake_complete": true,
+        "hold": null,
+        "appointment_on": "2026-11-26",
+        "appointment_site_id": "maple-site"
+      }
+    ]
+  },
+  "travel_preferences": {
+    "demo-001": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "demo-002": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 25
+    },
+    "cedar-001": {
+      "home_area": "east",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0101": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0102": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0103": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0104": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0105": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0106": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0107": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0108": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0109": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0110": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0111": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0112": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0113": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0114": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0115": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0116": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0117": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0118": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0119": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0120": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0121": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0122": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0123": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0124": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0125": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0126": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0127": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0128": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0129": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0130": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0131": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0132": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0133": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0134": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0135": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0136": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    },
+    "r-0137": {
+      "home_area": "west",
+      "mode": "transit",
+      "max_minutes": 35
+    },
+    "r-0138": {
+      "home_area": "central",
+      "mode": "driving",
+      "max_minutes": 35
+    }
+  },
+  "travel_minutes": {
+    "central": {
+      "maple-site": {
+        "driving": 12,
+        "transit": 21
+      },
+      "cedar-site": {
+        "driving": 24,
+        "transit": 42
+      }
+    },
+    "west": {
+      "maple-site": {
+        "driving": 11,
+        "transit": 19
+      },
+      "cedar-site": {
+        "driving": 32,
+        "transit": 47
+      }
+    },
+    "east": {
+      "maple-site": {
+        "driving": 28,
+        "transit": 44
+      },
+      "cedar-site": {
+        "driving": 10,
+        "transit": 18
+      }
+    }
+  }
+}

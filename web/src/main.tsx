@@ -18,6 +18,7 @@ createRoot(document.getElementById("root")!).render(
             <Route index element={<DemoHome />} />
             <Route path="family/:id" element={<FamilyPage />} />
             <Route path="staff" element={<StaffDashboard />} />
+            <Route path="staff/:clinicId" element={<StaffDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

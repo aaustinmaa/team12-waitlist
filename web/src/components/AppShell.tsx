@@ -5,7 +5,7 @@ import { useEffect } from "react";
 const links = [
   { to: "/", label: "Demo home", short: "", icon: Home, end: true },
   { to: "/family/demo-001", label: "Family view", short: "Family", icon: Smartphone, match: "/family" },
-  { to: "/staff", label: "Staff dashboard", short: "Staff", icon: LayoutDashboard },
+  { to: "/staff", label: "Staff dashboard", short: "Staff", icon: LayoutDashboard, match: "/staff" },
 ];
 
 export function AppShell() {
@@ -55,7 +55,7 @@ export function AppShell() {
         <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="flex items-center gap-1.5">
             <FlaskConical className="size-3.5" aria-hidden />
-            Course prototype · CS 497 Team 12 (JJAMMY) · Fictional clinic, synthetic data only
+            Course prototype · CS 497 Team 12 (JJAMMY) · Fictional clinics, synthetic data only
           </p>
           <p>Estimates are simulated for the demo and are not medical advice.</p>
         </div>

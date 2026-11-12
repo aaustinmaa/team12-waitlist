@@ -32,6 +32,7 @@ The web prototype adds a few optional fields. The fields above keep their meanin
 | Field | Meaning |
 | --- | --- |
 | `referral.appointment_on` | Confirmed first-assessment date when the status is `assessment_booked` |
+| `referral.appointment_site` | Name and location of a confirmed assessment site when recorded |
 | `estimate.reason` | Why no range is shown: `intake_incomplete`, `on_hold`, `booked`, or `beyond_horizon` |
 | `clinic.name`, `clinic.phone`, `clinic.hours` | Extra details for the family's contact card |
 
