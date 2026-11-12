@@ -78,6 +78,16 @@ function StatusCard({ data, compact }: { data: FamilyReferralResponse; compact: 
         </div>
       </div>
 
+      {referral.status === "on_hold" && referral.hold && (
+        <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200">
+          <p>
+            On hold since <strong>{fmtLong(referral.hold.start)}</strong>
+            {referral.hold.reason && <> · {referral.hold.reason}</>}
+          </p>
+          <p className="mt-1 text-amber-900">Your place in line is kept. The time on hold is counted separately from the clinic's wait.</p>
+        </div>
+      )}
+
       {referral.status === "assessment_booked" && referral.appointment_on && (
         <div className="mt-4 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
           <p className="text-sm text-emerald-900">First assessment</p>
@@ -89,18 +99,23 @@ function StatusCard({ data, compact }: { data: FamilyReferralResponse; compact: 
       <dl className={`mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm ${compact ? "" : "sm:grid-cols-4"}`}>
         <Fact label="Service" value={referral.service} />
         <Fact label="Referral received" value={fmtLong(referral.received_on)} />
-        <Fact label="Waiting so far" value={weeksLabel(waited)} />
+        <Fact
+          label="Waiting so far"
+          value={weeksLabel(waited)}
+          note={referral.days_on_hold ? `including ${weeksLabel(referral.days_on_hold)} on hold` : undefined}
+        />
         <Fact label="Referral ID" value={<span className="font-mono">{referral.id}</span>} />
       </dl>
     </Card>
   );
 }
 
-function Fact({ label, value }: { label: string; value: ReactNode }) {
+function Fact({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
     <div>
       <dt className="text-slate-500">{label}</dt>
       <dd className="font-medium text-slate-900">{value}</dd>
+      {note && <dd className="text-xs text-slate-500">{note}</dd>}
     </div>
   );
 }

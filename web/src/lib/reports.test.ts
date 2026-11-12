@@ -11,6 +11,8 @@ import {
   quarterTable,
   summarize,
   summaryTable,
+  waitWeeks,
+  waitWeeksExcludingHolds,
   weeklyWaitlist,
 } from "./reports";
 import { listQueue, DEFAULT_SLOTS } from "./api";
@@ -55,6 +57,22 @@ describe("report data", () => {
     const pts = estimatePoints(DEFAULT_QUARTER);
     expect(pts.length).toBe(s.estimatesChecked);
     expect(s.estimatesInside + s.estimatesEarlier + s.estimatesLater).toBe(s.estimatesChecked);
+  });
+
+  it("never makes the wait excluding holds longer than the wait, and subtracts the hold exactly", () => {
+    for (const c of CASES) {
+      const total = waitWeeks(c);
+      const ex = waitWeeksExcludingHolds(c);
+      if (total === null) {
+        expect(ex).toBeNull();
+        continue;
+      }
+      expect(ex!).toBeGreaterThan(0);
+      expect(ex!).toBeLessThanOrEqual(total);
+      if (!c.hold) expect(ex).toBe(total);
+    }
+    const s = summarize(DEFAULT_QUARTER);
+    expect(s.medianWaitExcludingHolds!).toBeLessThanOrEqual(s.medianWait!);
   });
 
   it("exports one summary row per quarter and the same columns on every row", () => {
