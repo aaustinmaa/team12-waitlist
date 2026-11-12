@@ -80,3 +80,24 @@ export interface DemoState {
   /** staff can mark intake complete for a referral during the demo */
   intakeCompleted: string[];
 }
+
+/** One referral that has left the waitlist (data/demo/clinic-history.json). */
+export interface HistoryReferral {
+  id: string;
+  received_on: string;
+  intake_completed_on: string;
+  age_group: string;
+  referral_source: string;
+  outcome: "assessed" | "withdrawn";
+  /** first-assessment date, or the date the referral was withdrawn */
+  closed_on: string;
+  withdrawn_reason?: string;
+  hold: Hold | null;
+  /** back-test: the range the estimator would have shown once intake was complete */
+  estimate_at_intake: { as_of: string; lower_weeks: number; upper_weeks: number } | null;
+}
+
+export interface ClinicHistory {
+  as_of: string;
+  referrals: HistoryReferral[];
+}

@@ -16,7 +16,7 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-30 print:hidden border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6">
           <NavLink to="/" className="flex shrink-0 items-center gap-2 font-semibold text-slate-900">
             <span className="grid size-8 place-items-center rounded-lg bg-teal-700 text-white">
@@ -51,7 +51,7 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="flex items-center gap-1.5">
             <FlaskConical className="size-3.5" aria-hidden />

@@ -24,3 +24,12 @@ details > summary {
 details > summary::-webkit-details-marker {
   display: none;
 }
+
+@media print {
+  body {
+    background: white;
+  }
+  @page {
+    margin: 12mm;
+  }
+}
