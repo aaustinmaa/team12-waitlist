@@ -160,7 +160,7 @@ export function StaffDashboard() {
                 <th className="px-5 py-3 font-medium">#</th>
                 <th className="px-3 py-3 font-medium">Referral</th>
                 <th className="px-3 py-3 font-medium">Received</th>
-                <th className="px-3 py-3 font-medium">Waiting</th>
+                <th className="px-3 py-3 font-medium" title="Calendar time since the referral was received. Time on hold is shown underneath and is part of this total.">Waiting</th>
                 <th className="hidden px-3 py-3 font-medium xl:table-cell">Age · Source</th>
                 <th className="px-3 py-3 font-medium">Status</th>
                 <th className="px-3 py-3 font-medium">Family sees</th>
@@ -173,7 +173,10 @@ export function StaffDashboard() {
                   <td className="px-5 py-3 tabular-nums text-slate-500">{r.position ?? "–"}</td>
                   <td className="px-3 py-3 font-mono font-medium text-slate-900">{r.id}</td>
                   <td className="whitespace-nowrap px-3 py-3 text-slate-700">{fmtShort(r.received_on)}</td>
-                  <td className="whitespace-nowrap px-3 py-3 text-slate-700">{weeksLabel(r.days_waiting)}</td>
+                  <td className="whitespace-nowrap px-3 py-3 text-slate-700">
+                    {weeksLabel(r.days_waiting)}
+                    {r.days_on_hold > 0 && <span className="block text-xs text-amber-800">{weeksLabel(r.days_on_hold)} on hold</span>}
+                  </td>
                   <td className="hidden px-3 py-3 text-slate-600 xl:table-cell"><span className="whitespace-nowrap">{r.age_group}</span><span className="block text-xs text-slate-400">{r.referral_source}</span></td>
                   <td className="px-3 py-3"><StatusCell r={r} /></td>
                   <td className="px-3 py-3"><EstimateCell r={r} /></td>
@@ -194,7 +197,10 @@ export function StaffDashboard() {
                     {r.position && <span className="mr-2 text-slate-400">#{r.position}</span>}
                     {r.id}
                   </p>
-                  <p className="text-sm text-slate-500">Received {fmtShort(r.received_on)} · {weeksLabel(r.days_waiting)}</p>
+                  <p className="text-sm text-slate-500">
+                    Received {fmtShort(r.received_on)} · {weeksLabel(r.days_waiting)}
+                    {r.days_on_hold > 0 && <span className="text-amber-800"> ({weeksLabel(r.days_on_hold)} on hold)</span>}
+                  </p>
                 </div>
                 <StatusCell r={r} />
               </div>
@@ -248,6 +254,8 @@ function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number): string
     "referral_id",
     "received_on",
     "days_waiting",
+    "days_on_hold",
+    "days_waiting_excluding_hold",
     "age_group",
     "referral_source",
     "status",
@@ -268,6 +276,8 @@ function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number): string
     r.id,
     r.received_on,
     r.days_waiting,
+    r.days_on_hold,
+    r.days_waiting - r.days_on_hold,
     r.age_group,
     r.referral_source,
     STATUS_LABEL[r.status],

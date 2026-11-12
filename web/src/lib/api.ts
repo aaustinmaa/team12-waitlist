@@ -5,7 +5,7 @@
 import queueJson from "../../../data/demo/clinic-queue.json";
 import { availableEstimate, simulateRange, unavailableEstimate } from "./estimator";
 import type { ClinicQueue, DemoState, FamilyReferralResponse, QueueReferral, StaffRow } from "./types";
-import { daysBetween } from "./dates";
+import { daysBetween, holdDays } from "./dates";
 
 const queue = queueJson as unknown as ClinicQueue;
 
@@ -41,6 +41,7 @@ export function listQueue(state: DemoState): StaffRow[] {
       intake_complete: intakeComplete(r, state),
       position,
       days_waiting: daysBetween(r.received_on, AS_OF),
+      days_on_hold: holdDays(r.hold, AS_OF),
       estimate: estimateFor(r, position, state),
     };
   });
@@ -62,6 +63,7 @@ export function getFamilyReferral(id: string, state: DemoState): FamilyReferralR
       status: row.status,
       received_on: row.received_on,
       ...(row.appointment_on ? { appointment_on: row.appointment_on } : {}),
+      ...(row.hold ? { hold: row.hold, days_on_hold: row.days_on_hold } : {}),
     },
     estimate: row.estimate,
     clinic: { contact: CLINIC.contact, name: CLINIC.name, phone: CLINIC.phone, hours: CLINIC.hours },

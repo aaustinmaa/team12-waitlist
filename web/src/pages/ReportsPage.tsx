@@ -100,6 +100,11 @@ export function ReportsPage() {
               ? `${signed(round1(s.medianWait - prev.medianWait))} wk ${vs}`
               : ""
           }
+          note={
+            s.medianWaitExcludingHolds !== null && s.assessedAfterHold > 0
+              ? `${s.medianWaitExcludingHolds.toFixed(1)} weeks excluding time on hold (${s.assessedAfterHold} of ${s.assessed} had a hold)`
+              : ""
+          }
         />
         <Tile
           label={quarter.partial ? `On the waitlist on ${fmtShort(quarter.last)}` : "On the waitlist at quarter end"}
@@ -349,12 +354,13 @@ function DownloadOption({ title, kind, body, button, onClick }: { title: string;
   );
 }
 
-function Tile({ label, value, sub, className = "" }: { label: string; value: string; sub: string; className?: string }) {
+function Tile({ label, value, sub, note, className = "" }: { label: string; value: string; sub: string; note?: string; className?: string }) {
   return (
     <div className={`rounded-2xl border border-slate-200 bg-white p-4 break-inside-avoid ${className}`}>
       <p className="text-sm text-slate-600">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
+      {note && <p className="mt-1.5 border-t border-slate-100 pt-1.5 text-xs text-slate-600">{note}</p>}
     </div>
   );
 }

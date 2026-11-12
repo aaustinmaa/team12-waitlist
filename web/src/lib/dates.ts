@@ -15,6 +15,16 @@ export function daysBetween(from: string, to: string) {
   return Math.round((parseDay(to).getTime() - parseDay(from).getTime()) / DAY);
 }
 
+/**
+ * Days a referral spent on hold up to `upTo` (exclusive): the hold start day
+ * counts, the end day doesn't. An open hold runs until `upTo`.
+ */
+export function holdDays(hold: { start: string; end: string | null } | null, upTo: string) {
+  if (!hold || hold.start >= upTo) return 0;
+  const end = hold.end === null || hold.end > upTo ? upTo : hold.end;
+  return daysBetween(hold.start, end);
+}
+
 const long = new Intl.DateTimeFormat("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 const short = new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", timeZone: "UTC" });
 const weekday = new Intl.DateTimeFormat("en-CA", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
