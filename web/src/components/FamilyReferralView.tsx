@@ -14,13 +14,11 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { addWeeks, daysBetween } from "../lib/dates";
-import { useDemo } from "../lib/demoState";
 import { duration, useI18n } from "../lib/i18n";
-import { CHANNELS, DEFAULT_PREFS } from "../lib/notifications";
-import type { Channel, FamilyReferralResponse } from "../lib/types";
+import type { FamilyReferralResponse } from "../lib/types";
 import { AppointmentCard } from "./family/AppointmentCard";
 import { PortalsCard, WhileYouWait } from "./family/Resources";
-import { UpdatesCard } from "./family/UpdatesCard";
+import { OPEN_NOTIFY_SETTINGS, UpdatesCard, useActiveChannels } from "./family/UpdatesCard";
 import { btn, Card, CardHeading, jumpTo, Tag } from "./ui";
 
 interface Props {
@@ -37,24 +35,31 @@ interface Props {
  */
 export function FamilyReferralView({ data, compact = false }: Props) {
   const { dir, lang } = useI18n();
-  const { referral, estimate, clinic } = data;
+  const { referral, clinic } = data;
   // In the staff preview there is nothing to jump to, so the jump buttons are left out.
   const ids = compact ? {} : { contact: "contact", updates: "updates", wait: "while-you-wait" };
 
+  // Two rows. The first is about this referral: the main column, with the
+  // two short cards a family needs at hand (who to call, how they'll hear)
+  // beside it. The second is general help, across the full width, so the
+  // side column is never much longer than the main one.
   return (
-    <div dir={dir} lang={lang} className={compact ? "space-y-4" : "grid gap-5 lg:grid-cols-3 lg:gap-6"}>
-      <div className={compact ? "space-y-4" : "space-y-5 lg:col-span-2 lg:space-y-6"}>
-        <StatusCard data={data} compact={compact} />
-        {referral.status === "assessment_booked" ? <AppointmentCard data={data} /> : <EstimateCard data={data} ids={ids} />}
-        <Journey data={data} />
+    <div dir={dir} lang={lang} className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
+      <div className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
+        <div className={compact ? "space-y-4" : "space-y-5 lg:col-span-2 lg:space-y-6"}>
+          <StatusCard data={data} compact={compact} />
+          {referral.status === "assessment_booked" ? <AppointmentCard data={data} /> : <EstimateCard data={data} ids={ids} />}
+          <Journey data={data} />
+        </div>
+        <aside className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
+          <ContactCard id={ids.contact} referralId={referral.id} clinic={clinic} />
+          <UpdatesCard data={data} id={ids.updates} readOnly={compact} />
+        </aside>
       </div>
-      <aside className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
-        <UpdatesCard data={data} id={ids.updates} readOnly={compact} />
-        <ContactCard id={ids.contact} referralId={referral.id} clinic={clinic} />
-        <WhileYouWait id={ids.wait} />
+      <div className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
+        <WhileYouWait id={ids.wait} className={compact ? "" : "lg:col-span-2"} />
         <PortalsCard portals={clinic.portals ?? []} />
-        {estimate.status === "available" && <HowEstimated data={data} />}
-      </aside>
+      </div>
     </div>
   );
 }
@@ -133,18 +138,10 @@ function Fact({ label, value, note }: { label: string; value: ReactNode; note?: 
 
 type Ids = { contact?: string; updates?: string; wait?: string };
 
-/** The channels a family has switched on, with where each one goes. */
-function useChannels(data: FamilyReferralResponse) {
-  const { state } = useDemo();
-  const prefs = state.notifyPrefs[data.referral.id] ?? DEFAULT_PREFS;
-  const to: Record<Channel, string> = { email: data.contact_on_file?.email ?? "", sms: data.contact_on_file?.phone ?? "", browser: "" };
-  return CHANNELS.filter((c) => prefs[c]).map((c) => ({ channel: c, to: to[c] }));
-}
-
 /** "We'll let you know": how this family will hear when their estimate appears or changes. */
 function NotifyPromise({ data, kind, ids }: { data: FamilyReferralResponse; kind: "ready" | "change"; ids: Ids }) {
   const { t } = useI18n();
-  const channels = useChannels(data);
+  const channels = useActiveChannels(data);
   const say = kind === "ready" ? t.notify.readyBy : t.notify.changeBy;
   return (
     <div className="mt-4 flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200">
@@ -161,7 +158,13 @@ function NotifyPromise({ data, kind, ids }: { data: FamilyReferralResponse; kind
           ))
         )}
         {ids.updates && (
-          <button type="button" onClick={() => jumpTo(ids.updates!)} className="mt-1 font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new Event(OPEN_NOTIFY_SETTINGS));
+              jumpTo(ids.updates!);
+            }}
+            className="mt-1 font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
             {t.notify.settings}
           </button>
         )}
@@ -256,6 +259,7 @@ function EstimateCard({ data, ids }: { data: FamilyReferralResponse; ids: Ids })
           ))}
         </ul>
       </details>
+      <HowEstimated data={data} />
 
       {ids.wait && (
         <button type="button" onClick={() => jumpTo(ids.wait!)} className="mt-4 text-sm font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
@@ -406,16 +410,22 @@ function ContactCard({ id, referralId, clinic }: { id?: string; referralId: stri
   );
 }
 
+/** Folded away under the estimate it explains. */
 function HowEstimated({ data }: { data: FamilyReferralResponse }) {
   const { t } = useI18n();
   return (
-    <Card>
-      <CardHeading>{t.how.heading}</CardHeading>
-      <p className="mt-2 text-sm text-slate-600">{t.how.p1}</p>
-      <p className="mt-2 text-sm text-slate-600">{t.how.p2}</p>
-      <p className="mt-2 text-sm text-slate-600">{t.how.priority}</p>
-      {data.priority && data.priority !== "standard" && <p className="mt-2 text-sm font-medium text-slate-800">{t.how.priorityRaised}</p>}
-      <p className="mt-2 text-sm text-slate-600">{t.how.p3}</p>
-    </Card>
+    <details className="group mt-2 rounded-xl border border-slate-200">
+      <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-800">
+        {t.how.heading}
+        <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="space-y-2 px-4 pb-4 text-sm text-slate-600">
+        <p>{t.how.p1}</p>
+        <p>{t.how.p2}</p>
+        <p>{t.how.priority}</p>
+        {data.priority && data.priority !== "standard" && <p className="font-medium text-slate-800">{t.how.priorityRaised}</p>}
+        <p>{t.how.p3}</p>
+      </div>
+    </details>
   );
 }

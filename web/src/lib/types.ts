@@ -184,6 +184,8 @@ export interface DemoState extends QueueState {
   told: Record<string, string>;
   /** guided tours this browser has already shown */
   toursSeen: string[];
+  /** per referral, the email and mobile number the family entered for updates */
+  contacts: Record<string, { email?: string; phone?: string }>;
 }
 
 /** One referral that has left the waitlist (data/demo/clinic-history.json). */

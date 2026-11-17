@@ -8,6 +8,7 @@ import { parseDay } from "../dates";
 import en, { type Dict } from "./en";
 import fr from "./fr";
 import zh from "./zh";
+import zhHant from "./zh-Hant";
 import es from "./es";
 import ar from "./ar";
 
@@ -16,7 +17,8 @@ export type { Dict };
 export const LANGS = [
   { code: "en", name: "English", locale: "en-CA", dir: "ltr", dict: en },
   { code: "fr", name: "Français", locale: "fr-CA", dir: "ltr", dict: fr },
-  { code: "zh", name: "简体中文", locale: "zh-CN", dir: "ltr", dict: zh },
+  { code: "zh-Hans", name: "简体中文", locale: "zh-CN", dir: "ltr", dict: zh },
+  { code: "zh-Hant", name: "繁體中文", locale: "zh-HK", dir: "ltr", dict: zhHant },
   { code: "es", name: "Español", locale: "es-US", dir: "ltr", dict: es },
   // Western digits, so numbers match the ones written inside the sentences.
   { code: "ar", name: "العربية", locale: "ar-u-nu-latn", dir: "rtl", dict: ar },
@@ -30,6 +32,16 @@ function find(code: string | null | undefined) {
   return LANGS.find((l) => l.code === code);
 }
 
+/** A browser language tag (en-CA, zh-TW, zh-Hant-HK, zh-CN ...) to one of ours. */
+export function matchLang(tag: string): LangCode | undefined {
+  const parts = tag.toLowerCase().split("-");
+  if (parts[0] === "zh") {
+    const traditional = parts.includes("hant") || ["tw", "hk", "mo"].some((r) => parts.includes(r));
+    return traditional ? "zh-Hant" : "zh-Hans";
+  }
+  return LANGS.find((l) => l.code === parts[0])?.code;
+}
+
 function initial(): LangCode {
   try {
     const saved = find(localStorage.getItem(KEY));
@@ -38,8 +50,8 @@ function initial(): LangCode {
     /* storage blocked */
   }
   for (const tag of typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language])) {
-    const match = find(tag.toLowerCase().split("-")[0]);
-    if (match) return match.code;
+    const match = matchLang(tag);
+    if (match) return match;
   }
   return "en";
 }

@@ -13,6 +13,8 @@ Live demo: https://aaustinmaa.github.io/team12-waitlist/ (updates after each mer
 - When there's no estimate, the page says the place on the waitlist is kept, when an estimate usually appears, that the family will be told, and links straight to the clinic contact.
 - Referral steps (received → on the waitlist → appointment booked → first assessment), clinic contact card, and a *While you wait* card that links to community programs (the non-technical solution).
 
+- **Layout.** On a computer, the side column holds only the two short cards a family needs at hand: how to contact the clinic and how they'll hear about changes. *While you wait* and the other health portals run across the full width below, and *How we estimate* folds away under the estimate. The side column went from about 2.6 times the height of the main column to shorter than it.
+
 **Staff dashboard** (`#/staff`, table on a computer, cards on a phone)
 
 - Counts for ready to book, needs intake info, on hold, and booked.
@@ -90,10 +92,10 @@ Watch for: is the link between capacity and what families see clear? Is it obvio
 **Family view**
 
 - **No estimate yet.** Says when an estimate usually appears (from the clinic's past referrals: about 6 days, 9 in 10 within 21 days) and how long ago this referral was received. If it has taken longer than usual, it suggests asking the clinic. On hold and too-long cases say what brings the estimate back.
-- **Updates.** "We'll let you know": the family sees where updates will go (masked email or phone on file) and can switch email, text message and device notifications on or off. Recent updates are listed, and one that arrives while the page is open appears at the bottom of the screen.
+- **Updates.** "We'll let you know": the family sees where updates will go. It starts from the clinic's records (shown masked), and the family can enter their own email or mobile number instead; both are checked for typos, and a phone number is tidied to 519-555-0123. Email, text message and device notifications switch on or off separately. The latest update is shown, with the rest a click away, and one that arrives while the page is open appears at the bottom of the screen. In the prototype, what a family enters is kept only in their browser and cleared by *Reset demo*.
 - **Booked appointment.** Time, place, room and the clinician (name, registration, languages), with *Add to your calendar*: an .ics file for Apple Calendar and Outlook, or Google Calendar and Outlook.com links. Reminder one day before. The referral ID goes in the file only, not in the links.
 - **While you wait.** Links to EarlyON centres, Hanen tips for parents, Ontario's Preschool Speech and Language Program and 211 Ontario, plus the two example local programs. A separate card links to other patient portals (ConnectMyHealth, MyChart, Health811).
-- **Languages.** English, French, Simplified Chinese, Spanish and Arabic (right to left). The choice is remembered per browser and starts from the browser's language. Staff pages stay in English.
+- **Languages.** English, French, Simplified Chinese, Traditional Chinese, Spanish and Arabic (right to left). Traditional Chinese uses Hong Kong and Taiwan wording (轉介, 短訊, 裝置), not a character swap of the Simplified text, and browsers set to zh-TW or zh-HK get it automatically. The choice is remembered per browser and starts from the browser's language. Staff pages stay in English.
 - **Guided tour.** Opens on the first visit and from *Take the tour*. It skips parts that aren't on the page.
 
 **Staff dashboard**

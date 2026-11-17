@@ -171,3 +171,48 @@ describe("add to calendar", () => {
     expect(eventTimes(ev).end.getTime() - eventTimes(ev).start.getTime()).toBe(3_600_000);
   });
 });
+
+describe("contact details a family enters", async () => {
+  const { contactDetails, normalizeEmail, normalizePhone } = await import("./contact");
+
+  it("accepts common ways of writing a mobile number and formats them the same way", () => {
+    for (const v of ["519-555-0123", "(519) 555-0123", "519.555.0123", "5195550123", "+1 519 555 0123", "1-519-555-0123"]) {
+      expect(normalizePhone(v)).toBe("519-555-0123");
+    }
+  });
+
+  it("rejects numbers that can't be a North American mobile", () => {
+    for (const v of ["", "555-0123", "019-555-0123", "519-155-0123", "519-555-01234", "call me", "519-555-012a"]) {
+      expect(normalizePhone(v)).toBeNull();
+    }
+  });
+
+  it("checks the shape of an email address", () => {
+    expect(normalizeEmail("  parent@example.com ")).toBe("parent@example.com");
+    expect(normalizeEmail("a.b+c@mail.example.ca")).toBe("a.b+c@mail.example.ca");
+    for (const v of ["", "parent", "parent@", "parent@example", "par ent@example.com", "@example.com", "parent@.com"]) {
+      expect(normalizeEmail(v)).toBeNull();
+    }
+  });
+
+  it("uses what the family entered, and the clinic's record otherwise", () => {
+    const onFile = { email: "a•••••@example.com", phone: "•••-•••-0142" };
+    expect(contactDetails(onFile, undefined).email).toEqual({ value: onFile.email, entered: false });
+    const mine = contactDetails(onFile, { phone: "519-555-0123" });
+    expect(mine.phone).toEqual({ value: "519-555-0123", entered: true });
+    expect(mine.email.entered).toBe(false);
+  });
+});
+
+describe("language from the browser", async () => {
+  const { matchLang } = await import("./i18n");
+  it("tells Traditional and Simplified Chinese apart", () => {
+    expect(matchLang("zh-TW")).toBe("zh-Hant");
+    expect(matchLang("zh-HK")).toBe("zh-Hant");
+    expect(matchLang("zh-Hant-CA")).toBe("zh-Hant");
+    expect(matchLang("zh-CN")).toBe("zh-Hans");
+    expect(matchLang("zh")).toBe("zh-Hans");
+    expect(matchLang("fr-CA")).toBe("fr");
+    expect(matchLang("de-DE")).toBeUndefined();
+  });
+});
