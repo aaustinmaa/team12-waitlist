@@ -47,6 +47,10 @@ export interface FamilyReferralResponse {
     received_on: string;
     /** prototype addition: confirmed first-assessment date when booked */
     appointment_on?: string;
+    /** prototype addition: the referral's hold, current or past, when it has one */
+    hold?: Hold;
+    /** prototype addition: days on hold up to estimate.as_of, when it has a hold */
+    days_on_hold?: number;
   };
   estimate: {
     status: "available" | "unavailable";
@@ -70,7 +74,10 @@ export interface FamilyReferralResponse {
 export interface StaffRow extends QueueReferral {
   /** 1-based place among referrals ready to be booked, null if not in that line */
   position: number | null;
+  /** calendar days since the referral was received, holds included */
   days_waiting: number;
+  /** the part of days_waiting the referral spent on hold */
+  days_on_hold: number;
   estimate: FamilyReferralResponse["estimate"];
 }
 

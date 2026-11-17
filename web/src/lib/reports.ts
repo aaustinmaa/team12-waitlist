@@ -8,6 +8,8 @@
 // Definitions used everywhere on the page:
 // - Wait to first assessment: referral received -> first assessment, in
 //   calendar weeks, holds included (docs/wait-time.md).
+// - Wait excluding holds: the same wait minus the days the referral was on
+//   hold, i.e. the part the clinic's capacity is responsible for.
 // - On the waitlist on a day: received on or before that day and not yet
 //   assessed or withdrawn. A booked referral stays on the list until its
 //   appointment.
@@ -17,7 +19,7 @@
 import historyJson from "../../../data/demo/clinic-history.json";
 import queueJson from "../../../data/demo/clinic-queue.json";
 import type { ClinicHistory, ClinicQueue, Hold } from "./types";
-import { daysBetween, parseDay } from "./dates";
+import { daysBetween, holdDays, parseDay } from "./dates";
 
 const history = historyJson as unknown as ClinicHistory;
 const queue = queueJson as unknown as ClinicQueue;
@@ -91,6 +93,16 @@ export function isOnHoldOn(c: Case, day: string) {
 
 export function waitWeeks(c: Case) {
   return c.outcome === "assessed" && c.closed_on ? weeks(c.received_on, c.closed_on) : null;
+}
+
+/** Days on hold up to the end of `day` (or until the referral closed, if earlier). */
+export function caseHoldDays(c: Case, day: string) {
+  const upTo = c.closed_on !== null && c.closed_on <= day ? c.closed_on : addDays(day, 1);
+  return holdDays(c.hold, upTo);
+}
+
+export function waitWeeksExcludingHolds(c: Case) {
+  return c.outcome === "assessed" && c.closed_on ? (daysBetween(c.received_on, c.closed_on) - holdDays(c.hold, c.closed_on)) / 7 : null;
 }
 
 export function estimateResult(c: Case): { actual: number; result: EstimateResult } | null {
@@ -169,6 +181,9 @@ export interface QuarterSummary {
   onHoldEnd: number;
   medianWait: number | null;
   p90Wait: number | null;
+  medianWaitExcludingHolds: number | null;
+  /** first assessments in the quarter that had a hold before them */
+  assessedAfterHold: number;
   estimatesChecked: number;
   estimatesInside: number;
   estimatesEarlier: number;
@@ -190,6 +205,8 @@ export function summarize(q: Quarter): QuarterSummary {
     onHoldEnd: CASES.filter((c) => isOnHoldOn(c, q.last)).length,
     medianWait: quantile(waits, 0.5),
     p90Wait: quantile(waits, 0.9),
+    medianWaitExcludingHolds: quantile(assessed.map((c) => waitWeeksExcludingHolds(c)!), 0.5),
+    assessedAfterHold: assessed.filter((c) => holdDays(c.hold, c.closed_on!) > 0).length,
     estimatesChecked: checks.length,
     estimatesInside: checks.filter((x) => x.result === "inside").length,
     estimatesEarlier: checks.filter((x) => x.result === "earlier").length,
@@ -325,6 +342,8 @@ export function summaryTable() {
     "on_hold_at_end",
     "median_wait_weeks",
     "p90_wait_weeks",
+    "median_wait_excluding_holds_weeks",
+    "first_assessments_after_a_hold",
     "estimates_checked",
     "estimates_inside_range",
     "estimates_inside_range_pct",
@@ -345,6 +364,8 @@ export function summaryTable() {
       s.onHoldEnd,
       round1(s.medianWait),
       round1(s.p90Wait),
+      round1(s.medianWaitExcludingHolds),
+      s.assessedAfterHold,
       s.estimatesChecked,
       s.estimatesInside,
       pct(s.estimatesInside, s.estimatesChecked),
@@ -367,9 +388,11 @@ export function quarterTable(q: Quarter) {
     "outcome",
     "closed_on",
     "wait_to_first_assessment_weeks",
+    "wait_excluding_holds_weeks",
     "hold_start",
     "hold_end",
     "hold_reason",
+    "days_on_hold",
     "withdrawn_reason",
     "estimate_on",
     "estimate_lower_weeks",
@@ -401,9 +424,11 @@ export function quarterTable(q: Quarter) {
         closedInQuarter ? c.outcome : null,
         closedInQuarter ? c.closed_on : null,
         closedInQuarter ? round1(waitWeeks(c)) : null,
+        closedInQuarter ? round1(waitWeeksExcludingHolds(c)) : null,
         c.hold && c.hold.start <= q.last ? c.hold.start : null,
         c.hold && c.hold.start <= q.last && c.hold.end && c.hold.end <= q.last ? c.hold.end : null,
         c.hold && c.hold.start <= q.last ? c.hold.reason : null,
+        c.hold && c.hold.start <= q.last ? caseHoldDays(c, q.last) : null,
         closedInQuarter ? c.withdrawn_reason : null,
         est ? c.estimate!.as_of : null,
         est ? c.estimate!.lower : null,
