@@ -438,3 +438,57 @@ export function quarterTable(q: Quarter) {
     });
   return { header, rows };
 }
+
+// ---------------------------------------------------------------- right now
+
+export interface Snapshot {
+  date: string;
+  /** everyone on the waitlist on the snapshot date */
+  total: number;
+  waiting: number;
+  onHold: number;
+  booked: number;
+  /** change since the same day four weeks earlier */
+  change4w: number;
+  /** time waited so far by referrals still on the list (holds included), in weeks */
+  waitedMedian: number | null;
+  waitedLongest: number | null;
+  /** first assessments in the last 90 days: wait from referral, in weeks */
+  recent: { count: number; median: number | null; p90: number | null; shortest: number | null; longest: number | null; from: string };
+}
+
+/** The numbers as of the snapshot date, independent of the quarter picked on the page. */
+export function snapshot(): Snapshot {
+  const day = REPORT_AS_OF;
+  const open = CASES.filter((c) => isOpenOn(c, day));
+  const onHold = open.filter((c) => isOnHoldOn(c, day)).length;
+  const booked = open.filter((c) => c.appointment_on !== null && !isOnHoldOn(c, day)).length;
+  const before = CASES.filter((c) => isOpenOn(c, addDays(day, -28))).length;
+  const waited = open.map((c) => weeks(c.received_on, day));
+  const from = addDays(day, -89);
+  const recent = CASES.filter((c) => c.outcome === "assessed" && inRange(c.closed_on, from, day)).map((c) => waitWeeks(c)!);
+  return {
+    date: day,
+    total: open.length,
+    waiting: open.length - onHold - booked,
+    onHold,
+    booked,
+    change4w: open.length - before,
+    waitedMedian: quantile(waited, 0.5),
+    waitedLongest: waited.length ? Math.max(...waited) : null,
+    recent: {
+      count: recent.length,
+      median: quantile(recent, 0.5),
+      p90: quantile(recent, 0.9),
+      shortest: recent.length ? Math.min(...recent) : null,
+      longest: recent.length ? Math.max(...recent) : null,
+      from,
+    },
+  };
+}
+
+/** Shortest and longest wait to first assessment in a quarter, for the numbers beside the wait chart. */
+export function waitSpread(q: Quarter) {
+  const waits = CASES.filter((c) => c.outcome === "assessed" && inRange(c.closed_on, q.start, q.last)).map((c) => waitWeeks(c)!);
+  return { shortest: waits.length ? Math.min(...waits) : null, longest: waits.length ? Math.max(...waits) : null };
+}

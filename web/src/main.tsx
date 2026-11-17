@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { HashRouter, Route, Routes } from "react-router";
 import "./index.css";
 import { DemoProvider } from "./lib/demoState";
+import { I18nProvider } from "./lib/i18n";
 import { AppShell } from "./components/AppShell";
 import { DemoHome } from "./pages/DemoHome";
 import { FamilyPage } from "./pages/FamilyPage";
@@ -13,6 +14,7 @@ import { NotFound } from "./pages/NotFound";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <DemoProvider>
+      <I18nProvider>
       <HashRouter>
         <Routes>
           <Route element={<AppShell />}>
@@ -24,6 +26,7 @@ createRoot(document.getElementById("root")!).render(
           </Route>
         </Routes>
       </HashRouter>
+      </I18nProvider>
     </DemoProvider>
   </StrictMode>,
 );

@@ -1,0 +1,248 @@
+// English strings for the family portal. This file is the source: its shape is
+// the `Dict` type every other language has to match, so a missing translation
+// is a type error. Staff pages are English only.
+
+import type { Channel, ClinicianLanguage, NoticeKind, ReferralStatus, UnavailableReason } from "../types";
+
+type Range = { lower: number; upper: number };
+
+const en = {
+  units: {
+    weeks: (n: number) => `${n} week${n === 1 ? "" : "s"}`,
+    days: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
+    minutes: (n: number) => `${n} minutes`,
+    /** short week label under the range bar */
+    wk: (n: number) => `${n} wk`,
+    list: (items: string[]) => items.join(", "),
+  },
+
+  page: {
+    portal: (clinic: string) => `${clinic} · Family portal`,
+    title: "Your child's referral",
+    service: "Speech-language services",
+    language: "Language",
+    tour: "Take the tour",
+    notFoundTitle: "We couldn't find that referral",
+    notFoundBody: (contact: string) => `Check the referral ID or contact ${contact}.`,
+    notFoundLink: "Open the demo referral",
+    newTab: "opens in a new tab",
+  },
+
+  status: {
+    heading: "Referral status",
+    confirmed: "Confirmed by the clinic",
+    label: {
+      waiting_for_assessment: "Waiting for first assessment",
+      on_hold: "On hold",
+      assessment_booked: "Assessment booked",
+    } satisfies Record<ReferralStatus, string>,
+    explain: {
+      waiting_for_assessment: "Your referral is on the waitlist for a first speech-language assessment. You don't need to do anything right now.",
+      on_hold: "Your referral is paused but still on the waitlist. It has not been cancelled. Contact the clinic if you're not sure why it's on hold.",
+      assessment_booked: "Your first assessment has a confirmed date and time.",
+    } satisfies Record<ReferralStatus, string>,
+    holdSince: (date: string) => `On hold since ${date}`,
+    holdKept: "Your place in line is kept. The time on hold is counted separately from the clinic's wait.",
+    holdReasons: {
+      "Family requested a pause": "Family requested a pause",
+      "Family travelling": "Family travelling",
+      "Awaiting hearing test results": "Awaiting hearing test results",
+    } as Record<string, string>,
+    firstAssessment: "First assessment",
+    at: (date: string, time: string) => `${date} at ${time}`,
+    seeDetails: "Time, place and clinician",
+    service: "Service",
+    received: "Referral received",
+    waited: "Waiting so far",
+    includingHold: (duration: string) => `including ${duration} on hold`,
+    referralId: "Referral ID",
+  },
+
+  estimate: {
+    heading: "Wait estimate",
+    chip: "Estimate · may change",
+    lead: "Estimated time until your child's first speech-language assessment:",
+    range: (r: Range) => `About ${r.lower}–${r.upper} more weeks`,
+    between: (from: string, to: string) => `Most likely between ${from} and ${to}.`,
+    today: "Today",
+    notAppointment: "This is not an appointment.",
+    message: "This estimate may change as appointments become available. The clinic will confirm your appointment separately.",
+    whyTitle: "Why might this change?",
+    why: [
+      "More or fewer assessment appointments open up (for example, a clinician joins or is away).",
+      "Other families cancel or reschedule.",
+      "Some children with more urgent needs are seen sooner.",
+      "Your referral is put on hold, for example while waiting for other test results.",
+    ],
+    calculated: (date: string) => `Calculated on ${date}. Updated when the clinic's availability changes.`,
+    whileYouWait: "See what you can do while you wait",
+
+    noneTitle: "No wait estimate right now",
+    none: {
+      intake_incomplete: "Your referral is still on the waitlist. We don't have enough information to estimate your wait yet.",
+      on_hold: "Your referral is on hold, so we can't estimate your wait right now. It is still on the waitlist.",
+      booked: "Your first assessment is booked. The clinic has confirmed the date shown here.",
+      beyond_horizon: "Your referral is still on the waitlist. The wait is currently too long for us to estimate reliably.",
+    } satisfies Record<UnavailableReason, string>,
+    keptTitle: "Your place on the waitlist is kept.",
+    keptBody: "Not having an estimate does not mean your referral was removed or cancelled.",
+    whenTitle: "When will I see an estimate?",
+    whenIntake: (typical: string, most: string, since: string) =>
+      `The clinic first reviews the information in your referral. Most families see an estimate about ${typical} after their referral is received, and 9 in 10 within ${most}. Yours was received ${since} ago.`,
+    whenIntakeLate: "This is taking longer than usual. You can contact the clinic to ask whether anything is missing.",
+    whenHold: "Your estimate comes back when the hold ends. Your place in line is kept in the meantime.",
+    whenHorizon: "We check again every time the clinic's appointment availability changes, and show a range as soon as the wait is within a year.",
+    contact: "Questions? Contact the clinic",
+    checked: (date: string) => `Checked on ${date}`,
+  },
+
+  notify: {
+    heading: "Updates about this referral",
+    weTell: "We'll tell you when:",
+    events: ["your wait estimate is ready", "your estimate changes by 2 weeks or more", "your first assessment is booked"],
+    how: "How should we reach you?",
+    channel: { email: "Email", sms: "Text message", browser: "Notifications on this device" } satisfies Record<Channel, string>,
+    channelShort: { email: "email", sms: "text message", browser: "this device" } satisfies Record<Channel, string>,
+    on: "On",
+    off: "Off",
+    onFile: "These are the contact details the clinic has on file. To change them, contact the clinic.",
+    unsupported: "This browser can't show notifications.",
+    blocked: "Notifications are blocked for this site. Allow them in your browser settings, then switch this on again.",
+    readyBy: {
+      email: (to: string) => `We'll send an email to ${to} as soon as your estimate is ready.`,
+      sms: (to: string) => `We'll send a text to ${to} as soon as your estimate is ready.`,
+      browser: () => "We'll send a notification to this device as soon as your estimate is ready.",
+    } satisfies Record<Channel, (to: string) => string>,
+    changeBy: {
+      email: (to: string) => `We'll email ${to} if this estimate changes by 2 weeks or more.`,
+      sms: (to: string) => `We'll text ${to} if this estimate changes by 2 weeks or more.`,
+      browser: () => "We'll notify this device if this estimate changes by 2 weeks or more.",
+    } satisfies Record<Channel, (to: string) => string>,
+    promiseTitle: "We'll let you know.",
+    noChannel: "Updates are switched off. New updates will only show on this page.",
+    settings: "Change how we notify you",
+    recent: "Recent updates",
+    empty: "No updates yet. New ones will appear here.",
+    title: {
+      estimate_ready: "Your wait estimate is ready",
+      estimate_changed: "Your wait estimate changed",
+      estimate_paused: "We can't estimate your wait right now",
+    } satisfies Record<NoticeKind, string>,
+    bodyReady: (r: Range) => `About ${r.lower}–${r.upper} more weeks until the first assessment.`,
+    bodyChanged: (r: Range, was: Range) => `Now about ${r.lower}–${r.upper} more weeks (it was ${was.lower}–${was.upper}).`,
+    bodyPaused: "Your place on the waitlist is kept. We'll tell you when we can estimate again.",
+    sentBy: (channels: string) => `Sent by ${channels}`,
+    pageOnly: "Shown on this page only",
+    newUpdate: "New update",
+    dismiss: "Dismiss",
+    prototype: "Prototype: emails and texts are recorded, not actually sent.",
+    staffPreview: "Only the family can change these settings.",
+  },
+
+  appointment: {
+    heading: "Your first assessment",
+    when: "When",
+    where: "Where",
+    with: "With",
+    timeRange: (from: string, to: string) => `${from} – ${to}`,
+    about: (duration: string) => `about ${duration}`,
+    /** the fixture names rooms "Room 2"; other languages swap the word */
+    room: (room: string) => room,
+    role: { slp: "Speech-Language Pathologist" },
+    speaks: (languages: string) => `Speaks ${languages}`,
+    languages: { en: "English", fr: "French", es: "Spanish", cmn: "Mandarin", yue: "Cantonese" } satisfies Record<ClinicianLanguage, string>,
+    calendarTitle: "Add to your calendar",
+    calendarNote: "Includes a reminder one day before.",
+    ics: "Apple or Outlook (.ics file)",
+    google: "Google Calendar",
+    outlook: "Outlook.com",
+    downloaded: (file: string) => `Downloaded ${file}. Open it to add the appointment to your calendar.`,
+    beforeTitle: "Before your appointment",
+    before: [
+      "Arrive 10 minutes early and check in at the front desk. Parking is free behind the building.",
+      "Bring your child's health card and any reports from other professionals.",
+      "A parent or guardian stays with the child. The first visit is mostly play and conversation.",
+      "Can't make it? Let the clinic know early so another family can use the time.",
+    ],
+    eventTitle: (clinic: string) => `First speech-language assessment · ${clinic}`,
+    eventWith: (name: string, role: string) => `With ${name}, ${role}.`,
+    eventBring: "Arrive 10 minutes early. Bring your child's health card.",
+    eventContact: (phone: string) => `To reschedule, call ${phone}.`,
+  },
+
+  steps: {
+    heading: "Your referral's steps",
+    received: "Referral received",
+    waitlist: "On the waitlist",
+    waitlistHold: "On the waitlist (on hold)",
+    done: "Done",
+    here: "You are here",
+    booked: "Appointment booked",
+    bookedFor: (date: string) => `For ${date}`,
+    clinicContacts: "The clinic contacts you",
+    assessment: "First assessment",
+    withSlp: "With a speech-language pathologist",
+    withName: (name: string) => `With ${name}`,
+  },
+
+  contact: {
+    heading: "Questions? Contact the clinic",
+    team: "Waitlist and intake team",
+    email: "Email",
+    phone: "Phone",
+    haveId: "Have your referral ID ready:",
+  },
+
+  wait: {
+    heading: "While you wait",
+    intro: "Things you can do now. They don't replace the assessment.",
+    onlineTitle: "Help and information in Ontario",
+    earlyon: { title: "Find an EarlyON child and family centre", note: "Free drop-in programs for children up to age 6 and their caregivers." },
+    hanen: { title: "Tips for helping your child communicate", note: "Everyday ideas for parents from The Hanen Centre." },
+    program: { title: "Ontario's Preschool Speech and Language Program", note: "How the program works and what to expect." },
+    o211: { title: "211 Ontario", note: "Find community and social services near you, online or by calling 2-1-1." },
+    englishOnly: "",
+    nearTitle: "Near you",
+    playTalk: { title: "Play & Talk drop-in", where: "Riverside Public Library · Saturdays 10–11:30", note: "Songs, books and play, run by supervised students in child development programs." },
+    coffee: { title: "Parent coffee circle", where: "Northfield Community Centre · Wednesdays 6–7 pm", note: "Meet other families who are waiting for services." },
+    example: "The two local programs are examples made up for the prototype.",
+  },
+
+  portals: {
+    heading: "Your other health portals",
+    intro: "Other sites your family may already use. Each one has its own sign-in, and this page doesn't share your information with them.",
+    note: {
+      connectmyhealth: "Records from participating hospitals in Ontario Health West.",
+      mychart: "Health records from Sunnybrook and other participating providers.",
+      health811: "Health advice from a registered nurse, day or night. Online or call 8-1-1.",
+    } as Record<string, string>,
+  },
+
+  how: {
+    heading: "How we estimate",
+    p1: "We look at how many families are ahead of you and how many first-assessment appointments the clinic expects to offer each week. We run that forward many times with normal ups and downs, like cancellations or staff time off.",
+    p2: "The range covers most of those outcomes. About 1 in 10 families may be seen sooner, and about 1 in 10 may wait longer.",
+    priority: "Children are seen in the order of the priority the clinic's clinicians give each referral, then by referral date. The estimate allows for some children with more urgent needs being placed ahead of you.",
+    priorityRaised: "The clinic has given this referral a higher priority. Your estimate already takes that into account.",
+    p3: "Apart from that priority, the estimate doesn't use your child's diagnosis or personal details.",
+  },
+
+  tour: {
+    next: "Next",
+    back: "Back",
+    skip: "Skip tour",
+    done: "Done",
+    step: (n: number, of: number) => `Step ${n} of ${of}`,
+    status: { title: "Start here: your referral status", body: "This card shows what the clinic has confirmed: where your referral is and how long you have waited so far." },
+    estimate: { title: "Your wait estimate", body: "An estimate of how much longer the wait may be. It is not an appointment. The dashed border marks information that can change." },
+    appointment: { title: "Your appointment", body: "The date, time, place and the clinician you will meet. You can add it to your calendar from here." },
+    notify: { title: "Stay updated", body: "Choose how we tell you when your estimate is ready or changes, so you don't have to keep checking." },
+    steps: { title: "What happens next", body: "The steps from referral to first assessment, and where you are now." },
+    contact: { title: "Need help?", body: "The clinic's email and phone number. Mention your referral ID when you get in touch." },
+    wait: { title: "While you wait", body: "Programs and resources you can use now, and links to other health portals." },
+    language: { title: "Change the language", body: "You can read this page in another language at any time." },
+  },
+};
+
+export type Dict = typeof en;
+export default en;
