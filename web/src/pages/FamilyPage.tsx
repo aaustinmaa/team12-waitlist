@@ -46,9 +46,10 @@ export function FamilyPage() {
       { target: "status", ...t.tour.status },
       { target: "estimate", ...t.tour.estimate },
       { target: "appointment", ...t.tour.appointment },
-      { target: "notify", ...t.tour.notify },
+      // Same order as the page: down the main column, then down the side column (which follows it on a phone).
       { target: "steps", ...t.tour.steps },
       { target: "contact", ...t.tour.contact },
+      { target: "notify", ...t.tour.notify },
       { target: "wait", ...t.tour.wait },
       { target: "language", ...t.tour.language },
     ],
