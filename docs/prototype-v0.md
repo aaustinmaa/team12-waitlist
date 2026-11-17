@@ -10,8 +10,10 @@ Live demo: https://aaustinmaa.github.io/team12-waitlist/ (updates after each mer
 
 - Referral status in a solid card labelled *Confirmed by the clinic*: status, date received, time waited so far, referral ID.
 - Wait estimate in a separate dashed card labelled *Estimate · may change*: the range in weeks, the likely date window, a range bar from today, when it was calculated, a "this is not an appointment" note, and what could change it.
-- When there's no estimate, the page says the place on the waitlist is kept and links straight to the clinic contact.
+- When there's no estimate, the page says the place on the waitlist is kept, when an estimate usually appears, that the family will be told, and links straight to the clinic contact.
 - Referral steps (received → on the waitlist → appointment booked → first assessment), clinic contact card, and a *While you wait* card that links to community programs (the non-technical solution).
+
+- **Layout.** On a computer, two columns that each run straight down: the referral on the left (status, estimate or appointment, steps, then the other health portals), and the things a family keeps at hand on the right (contact the clinic, updates, while you wait). *How we estimate* folds away under the estimate, and *While you wait* uses plain lists with one-line notes so the right column ends about where the left one does. On a phone the order is the same, left column first, with the health portals last.
 
 **Staff dashboard** (`#/staff`, table on a computer, cards on a phone)
 
@@ -85,6 +87,34 @@ Watch for: do they think the referral disappeared or was cancelled? Can they fin
 
 Watch for: is the link between capacity and what families see clear? Is it obvious which screen is staff-only?
 
+## Changes after the Week 8 peer evaluation
+
+**Family view**
+
+- **No estimate yet.** Says when an estimate usually appears (from the clinic's past referrals: about 6 days, 9 in 10 within 21 days) and how long ago this referral was received. If it has taken longer than usual, it suggests asking the clinic. On hold and too-long cases say what brings the estimate back.
+- **Updates.** "We'll let you know": the family sees where updates will go. It starts from the clinic's records (shown masked), and the family can enter their own email or mobile number instead; both are checked for typos, and a phone number is tidied to 519-555-0123. Email, text message and device notifications switch on or off separately. The latest update is shown, with the rest a click away, and one that arrives while the page is open appears at the bottom of the screen. In the prototype, what a family enters is kept only in their browser and cleared by *Reset demo*.
+- **Booked appointment.** Time, place, room and the clinician (name, registration, languages), with *Add to your calendar*: an .ics file for Apple Calendar and Outlook, or Google Calendar and Outlook.com links. Reminder one day before. The referral ID goes in the file only, not in the links.
+- **While you wait.** Links to EarlyON centres, Hanen tips for parents, Ontario's Preschool Speech and Language Program and 211 Ontario, plus the two example local programs. A separate card links to other patient portals (ConnectMyHealth, MyChart, Health811).
+- **Languages.** English, French, Simplified Chinese, Traditional Chinese, Spanish and Arabic (right to left). Traditional Chinese uses Hong Kong and Taiwan wording (轉介, 短訊, 裝置), not a character swap of the Simplified text, and browsers set to zh-TW or zh-HK get it automatically. The choice is remembered per browser and starts from the browser's language. Staff pages stay in English.
+- **Guided tour.** Opens on the first visit and from *Take the tour*. It skips parts that aren't on the page.
+
+**Staff dashboard**
+
+- Priority per referral (urgent, high, standard). The line is ordered by priority, then date, and the estimate accounts for it. The "a family referred today" box shows the range at each priority.
+- *Updates sent to families* lists what was sent after each change, by which channels.
+- Appointment time and clinician in the waitlist and the download.
+
+**Reports**
+
+- *Right now* at the top: children on the waitlist today in large type, with waiting, booked and on hold, the change over 4 weeks, the wait to first assessment over the last 90 days, and how long children still waiting have waited.
+- *Referrals in and first assessments out* is a bar chart with the count on each bar. The selected quarter is in full colour.
+- *Wait to first assessment* lists the median, 9-in-10, shortest and longest wait for the quarter, and labels the latest values on the lines.
+
+**Everywhere**
+
+- Dark mode: the button at the right of the header cycles *Same as device*, *Light* and *Dark*.
+- Buttons that can't be used are grey. Labels that are not buttons ("Confirmed by the clinic", "Estimate · may change") are plain grey text instead of coloured pills.
+
 ## Not in this version
 
-Chatbot, multiple clinics, EMR connection, sign-in, real data, languages other than English, and a trained model. Hold rules, the start and end of the wait, and which fields can be shared with families still need confirmation from a clinic.
+Chatbot, multiple clinics, EMR connection, sign-in, real data, real email and text messages, and a trained model. Translations were written for the prototype and still need review by native speakers. Hold rules, the start and end of the wait, and which fields can be shared with families still need confirmation from a clinic.

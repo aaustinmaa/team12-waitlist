@@ -6,6 +6,13 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="description" content="Team 12 waitlist prototype: referral status and wait estimates for families, with a clinic staff dashboard. Synthetic data only." />
     <title>Waitlist Prototype · Team 12</title>
+    <script>
+      // Apply the saved light/dark choice before the page paints (see src/lib/theme.tsx).
+      try {
+        var t = localStorage.getItem("team12-theme");
+        if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

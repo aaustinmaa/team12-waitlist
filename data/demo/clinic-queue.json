@@ -6,7 +6,59 @@
     "service": "Speech-language services",
     "contact": "waitlist@example.org",
     "phone": "519-555-0142",
-    "hours": "Mon–Fri, 9:00–4:30"
+    "hours": "Mon–Fri, 9:00–4:30",
+    "address": "120 Maple Grove Road, Unit 3, Waterloo, ON N2L 0A1",
+    "timezone": "America/Toronto",
+    "clinicians": [
+      {
+        "id": "c-01",
+        "name": "Amara Okafor",
+        "role": "slp",
+        "registration": "Reg. CASLPO",
+        "languages": [
+          "en",
+          "fr"
+        ]
+      },
+      {
+        "id": "c-02",
+        "name": "Daniel Reyes",
+        "role": "slp",
+        "registration": "Reg. CASLPO",
+        "languages": [
+          "en",
+          "es"
+        ]
+      },
+      {
+        "id": "c-03",
+        "name": "Mei-Ling Chen",
+        "role": "slp",
+        "registration": "Reg. CASLPO",
+        "languages": [
+          "en",
+          "cmn",
+          "yue"
+        ]
+      }
+    ],
+    "portals": [
+      {
+        "id": "connectmyhealth",
+        "name": "ConnectMyHealth",
+        "url": "https://info.connectmyhealth.ca/"
+      },
+      {
+        "id": "mychart",
+        "name": "MyChart",
+        "url": "https://www.mychart.ca/"
+      },
+      {
+        "id": "health811",
+        "name": "Health811",
+        "url": "https://health811.ontario.ca/"
+      }
+    ]
   },
   "capacity": {
     "assessment_slots_per_week": 5
@@ -18,9 +70,16 @@
       "status": "assessment_booked",
       "age_group": "4–5 years",
       "referral_source": "Child care centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-10"
+      "appointment_on": "2026-11-10",
+      "appointment": {
+        "start_time": "09:00",
+        "duration_minutes": 60,
+        "clinician_id": "c-02",
+        "room": "Room 1"
+      }
     },
     {
       "id": "r-0102",
@@ -28,9 +87,16 @@
       "status": "assessment_booked",
       "age_group": "4–5 years",
       "referral_source": "Self-referral",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-12"
+      "appointment_on": "2026-11-12",
+      "appointment": {
+        "start_time": "13:30",
+        "duration_minutes": 60,
+        "clinician_id": "c-01",
+        "room": "Room 2"
+      }
     },
     {
       "id": "r-0103",
@@ -38,9 +104,16 @@
       "status": "assessment_booked",
       "age_group": "18–24 months",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-17"
+      "appointment_on": "2026-11-17",
+      "appointment": {
+        "start_time": "10:30",
+        "duration_minutes": 60,
+        "clinician_id": "c-03",
+        "room": "Room 1"
+      }
     },
     {
       "id": "r-0104",
@@ -48,9 +121,16 @@
       "status": "assessment_booked",
       "age_group": "18–24 months",
       "referral_source": "Self-referral",
+      "priority": "high",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-19"
+      "appointment_on": "2026-11-19",
+      "appointment": {
+        "start_time": "09:00",
+        "duration_minutes": 60,
+        "clinician_id": "c-01",
+        "room": "Room 2"
+      }
     },
     {
       "id": "r-0105",
@@ -58,9 +138,16 @@
       "status": "assessment_booked",
       "age_group": "2–3 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-24"
+      "appointment_on": "2026-11-24",
+      "appointment": {
+        "start_time": "14:00",
+        "duration_minutes": 60,
+        "clinician_id": "c-02",
+        "room": "Room 1"
+      }
     },
     {
       "id": "demo-003",
@@ -68,9 +155,16 @@
       "status": "assessment_booked",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null,
-      "appointment_on": "2026-11-26"
+      "appointment_on": "2026-11-26",
+      "appointment": {
+        "start_time": "10:30",
+        "duration_minutes": 60,
+        "clinician_id": "c-01",
+        "room": "Room 2"
+      }
     },
     {
       "id": "r-0106",
@@ -78,6 +172,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -87,6 +182,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -96,6 +192,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -105,6 +202,7 @@
       "status": "on_hold",
       "age_group": "2–3 years",
       "referral_source": "Child care centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": {
         "start": "2026-10-01",
@@ -118,6 +216,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -127,6 +226,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -136,6 +236,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": {
         "start": "2026-09-08",
@@ -149,6 +250,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "Family doctor",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -158,6 +260,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -167,6 +270,7 @@
       "status": "on_hold",
       "age_group": "2–3 years",
       "referral_source": "Pediatrician",
+      "priority": "high",
       "intake_complete": true,
       "hold": {
         "start": "2026-10-20",
@@ -180,6 +284,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "Family doctor",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -189,6 +294,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -198,6 +304,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "Child care centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -207,6 +314,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "Self-referral",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -216,6 +324,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -225,6 +334,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "Pediatrician",
+      "priority": "high",
       "intake_complete": true,
       "hold": null
     },
@@ -234,6 +344,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "Self-referral",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -243,6 +354,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "Family doctor",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -252,6 +364,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "Family doctor",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -261,6 +374,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "Self-referral",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -270,6 +384,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -279,6 +394,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -288,6 +404,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "Pediatrician",
+      "priority": "urgent",
       "intake_complete": true,
       "hold": null
     },
@@ -297,6 +414,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -306,6 +424,7 @@
       "status": "waiting_for_assessment",
       "age_group": "3–4 years",
       "referral_source": "Family doctor",
+      "priority": "high",
       "intake_complete": true,
       "hold": null
     },
@@ -315,6 +434,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Self-referral",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -324,6 +444,7 @@
       "status": "waiting_for_assessment",
       "age_group": "2–3 years",
       "referral_source": "Family doctor",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -333,6 +454,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -342,6 +464,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     },
@@ -351,6 +474,7 @@
       "status": "waiting_for_assessment",
       "age_group": "4–5 years",
       "referral_source": "Pediatrician",
+      "priority": "standard",
       "intake_complete": false,
       "hold": null
     },
@@ -360,6 +484,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "EarlyON centre",
+      "priority": "standard",
       "intake_complete": false,
       "hold": null
     },
@@ -369,6 +494,7 @@
       "status": "waiting_for_assessment",
       "age_group": "18–24 months",
       "referral_source": "Child care centre",
+      "priority": "standard",
       "intake_complete": true,
       "hold": null
     }

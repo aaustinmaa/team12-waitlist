@@ -36,8 +36,21 @@ The web prototype adds a few optional fields. The fields above keep their meanin
 | `referral.hold` | The referral's hold (`start`, `end`, `reason`), current or past. Only present when it has one |
 | `referral.days_on_hold` | Days on hold up to `estimate.as_of`. Only present with `referral.hold` |
 | `clinic.name`, `clinic.phone`, `clinic.hours` | Extra details for the family's contact card |
+| `clinic.portals` | Other patient portals the family may use (`id`, `name`, `url`). Links only; nothing is shared with them |
+| `priority` | `urgent`, `high` or `standard`, set by the clinic's clinicians |
+| `appointment` | When booked: `on`, `start_time` (clinic time, `HH:MM`), `duration_minutes`, `timezone`, `location` (`name`, `address`, `room`) and `clinician` (`name`, `role`, `registration`, `languages`) |
+| `intake` | How long an estimate usually takes to appear: `typical_days` and `most_within_days` (median and 90th percentile, referral received to intake complete, over the past year) and `days_since_received` |
+| `contact_on_file` | Masked email and phone the clinic has on file, where updates are sent |
 
 The `status` value `on_hold` marks a referral that is paused but still on the waitlist. `assessment_booked` marks one with a confirmed first-assessment date.
+
+## Priority
+
+The clinic's clinicians give each referral a priority: `urgent`, `high` or `standard` (the default). Referrals ready to book are seen in priority order, then by `received_on`, so a referral's place in line already counts everyone of a higher priority. The estimate also allows for referrals that arrive later and are placed ahead: on average 0.25 a week can pass a standard referral, 0.1 a week a high-priority one, and none an urgent one. Raising one referral's priority moves it up and pushes everyone it passes back by one place. The staff dashboard shows the range a new referral would be told at each priority.
+
+## Updates to families
+
+When a staff change alters what a family sees, the family is told: when an estimate becomes available, when the range moves by 2 weeks or more at either end, and when an estimate can no longer be shown. Smaller shifts are not announced, but they add up, so a range that drifts 1 week twice is announced the second time. Families choose email, text message or notifications on their device; by default email is on. In the prototype nothing is sent: updates show on the family page, in *Updates sent to families* on the staff dashboard, and as a device notification when the family switched that on.
 
 ## Time on hold
 

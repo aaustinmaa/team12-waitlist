@@ -1,6 +1,13 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { FlaskConical, Hourglass, LayoutDashboard, Smartphone, Home } from "lucide-react";
+import { FlaskConical, Hourglass, LayoutDashboard, Monitor, Moon, Smartphone, Sun, Home } from "lucide-react";
 import { useEffect } from "react";
+import { useTheme, type ThemeChoice } from "../lib/theme";
+
+const THEME: Record<ThemeChoice, { icon: typeof Sun; label: string }> = {
+  system: { icon: Monitor, label: "Same as device" },
+  light: { icon: Sun, label: "Light" },
+  dark: { icon: Moon, label: "Dark" },
+};
 
 const links = [
   { to: "/", label: "Demo home", short: "", icon: Home, end: true },
@@ -10,6 +17,8 @@ const links = [
 
 export function AppShell() {
   const { pathname } = useLocation();
+  const theme = useTheme();
+  const ThemeIcon = THEME[theme.choice].icon;
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -44,6 +53,16 @@ export function AppShell() {
               </NavLink>
             ))}
           </nav>
+          <button
+            type="button"
+            onClick={theme.next}
+            title={`Colours: ${THEME[theme.choice].label}. Click to change.`}
+            aria-label={`Colours: ${THEME[theme.choice].label}. Change colours`}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          >
+            <ThemeIcon className="size-4" aria-hidden />
+            <span className="hidden lg:inline">{THEME[theme.choice].label}</span>
+          </button>
         </div>
       </header>
 

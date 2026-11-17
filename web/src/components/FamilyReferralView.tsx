@@ -1,23 +1,25 @@
 import {
   BadgeCheck,
+  Bell,
   CalendarCheck,
-  CalendarClock,
   ChevronDown,
   CircleHelp,
   Clock,
   Info,
-  Library,
   Mail,
   MessageCircleQuestion,
   PauseCircle,
   Phone,
   Sparkles,
-  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { addWeeks, daysBetween, fmtLong, fmtShort, fmtWeekday } from "../lib/dates";
+import { addWeeks, daysBetween } from "../lib/dates";
+import { duration, useI18n } from "../lib/i18n";
 import type { FamilyReferralResponse } from "../lib/types";
-import { Card, Chip, STATUS_LABEL, weeksLabel } from "./ui";
+import { AppointmentCard } from "./family/AppointmentCard";
+import { PortalsCard, WhileYouWait } from "./family/Resources";
+import { OPEN_NOTIFY_SETTINGS, UpdatesCard, useActiveChannels } from "./family/UpdatesCard";
+import { btn, Card, CardHeading, jumpTo, Tag } from "./ui";
 
 interface Props {
   data: FamilyReferralResponse;
@@ -28,83 +30,96 @@ interface Props {
 /**
  * The family-facing referral page. Confirmed facts (status, dates, contact)
  * and the estimate are drawn differently on purpose: solid cards for what the
- * clinic has confirmed, a dashed card for what is estimated.
+ * clinic has confirmed, a dashed card for what is estimated. All text comes
+ * from the family's chosen language (lib/i18n).
  */
 export function FamilyReferralView({ data, compact = false }: Props) {
-  const { referral, estimate, clinic } = data;
-  const contactId = compact ? undefined : "contact";
+  const { dir, lang } = useI18n();
+  const { referral, clinic } = data;
+  // In the staff preview there is nothing to jump to, so the jump buttons are left out.
+  const ids = compact ? {} : { contact: "contact", updates: "updates", wait: "while-you-wait" };
 
+  // Two columns that each run straight down, so neither has to wait for the
+  // other: the referral itself on the left, and on the right the things a
+  // family keeps at hand (who to call, how they'll hear, what to do while
+  // waiting). The other health portals are least used, so they close the
+  // left column on a computer and the page on a phone.
+  const portals = <PortalsCard portals={clinic.portals ?? []} />;
   return (
-    <div className={compact ? "space-y-4" : "grid gap-5 lg:grid-cols-3 lg:gap-6"}>
+    <div dir={dir} lang={lang} className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
       <div className={compact ? "space-y-4" : "space-y-5 lg:col-span-2 lg:space-y-6"}>
         <StatusCard data={data} compact={compact} />
-        {referral.status === "assessment_booked" ? <BookedNextSteps data={data} /> : <EstimateCard data={data} contactHref={contactId ? `#${contactId}` : undefined} />}
+        {referral.status === "assessment_booked" ? <AppointmentCard data={data} /> : <EstimateCard data={data} ids={ids} />}
         <Journey data={data} />
+        {!compact && <div className="hidden lg:block">{portals}</div>}
       </div>
       <aside className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
-        <ContactCard id={contactId} referralId={referral.id} clinic={clinic} />
-        <WhileYouWait />
-        {estimate.status === "available" && <HowEstimated />}
+        <ContactCard id={ids.contact} referralId={referral.id} clinic={clinic} />
+        <UpdatesCard data={data} id={ids.updates} readOnly={compact} />
+        <WhileYouWait id={ids.wait} />
+        {compact ? portals : <div className="lg:hidden">{portals}</div>}
       </aside>
     </div>
   );
 }
 
 function StatusCard({ data, compact }: { data: FamilyReferralResponse; compact: boolean }) {
-  const { referral, estimate } = data;
+  const { t, fmt } = useI18n();
+  const { referral, estimate, appointment } = data;
   const waited = daysBetween(referral.received_on, estimate.as_of);
   const Icon = referral.status === "on_hold" ? PauseCircle : referral.status === "assessment_booked" ? CalendarCheck : BadgeCheck;
-  const explain = {
-    waiting_for_assessment: "Your referral is on the waitlist for a first speech-language assessment. You don't need to do anything right now.",
-    on_hold: "Your referral is paused but still on the waitlist. It has not been cancelled. Contact the clinic if you're not sure why it's on hold.",
-    assessment_booked: "Your first assessment has a confirmed date.",
-  }[referral.status];
 
   return (
-    <Card>
+    <Card tour="status">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Referral status</h2>
-        <Chip tone="teal" icon={<BadgeCheck className="size-3.5" aria-hidden />}>
-          Confirmed by the clinic
-        </Chip>
+        <CardHeading>{t.status.heading}</CardHeading>
+        <Tag icon={<BadgeCheck className="size-3.5" aria-hidden />}>{t.status.confirmed}</Tag>
       </div>
       <div className="mt-4 flex items-start gap-3">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${referral.status === "on_hold" ? "bg-amber-100 text-amber-800" : "bg-teal-100 text-teal-800"}`}>
+        <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${referral.status === "on_hold" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"}`}>
           <Icon className="size-6" aria-hidden />
         </span>
         <div>
-          <p className="text-xl font-semibold text-slate-900 sm:text-2xl">{STATUS_LABEL[referral.status]}</p>
-          <p className="mt-1 text-slate-600">{explain}</p>
+          <p className="text-xl font-semibold text-slate-900 sm:text-2xl">{t.status.label[referral.status]}</p>
+          <p className="mt-1 text-slate-600">{t.status.explain[referral.status]}</p>
         </div>
       </div>
 
       {referral.status === "on_hold" && referral.hold && (
         <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200">
           <p>
-            On hold since <strong>{fmtLong(referral.hold.start)}</strong>
-            {referral.hold.reason && <> · {referral.hold.reason}</>}
+            <strong>{t.status.holdSince(fmt.long(referral.hold.start))}</strong>
+            {referral.hold.reason && <> · {t.status.holdReasons[referral.hold.reason] ?? referral.hold.reason}</>}
           </p>
-          <p className="mt-1 text-amber-900">Your place in line is kept. The time on hold is counted separately from the clinic's wait.</p>
+          <p className="mt-1 text-amber-900">{t.status.holdKept}</p>
         </div>
       )}
 
       {referral.status === "assessment_booked" && referral.appointment_on && (
         <div className="mt-4 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
-          <p className="text-sm text-emerald-900">First assessment</p>
-          <p className="text-lg font-semibold text-emerald-950">{fmtWeekday(referral.appointment_on)}</p>
-          <p className="mt-1 text-sm text-emerald-900">The clinic sent you the time and location when they booked it.</p>
+          <p className="text-sm text-emerald-900">{t.status.firstAssessment}</p>
+          <p className="text-lg font-semibold text-emerald-950">
+            {appointment ? t.status.at(fmt.weekday(referral.appointment_on), fmt.time(appointment.start_time)) : fmt.weekday(referral.appointment_on)}
+          </p>
         </div>
       )}
 
       <dl className={`mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm ${compact ? "" : "sm:grid-cols-4"}`}>
-        <Fact label="Service" value={referral.service} />
-        <Fact label="Referral received" value={fmtLong(referral.received_on)} />
+        <Fact label={t.status.service} value={t.page.service} />
+        <Fact label={t.status.received} value={fmt.long(referral.received_on)} />
         <Fact
-          label="Waiting so far"
-          value={weeksLabel(waited)}
-          note={referral.days_on_hold ? `including ${weeksLabel(referral.days_on_hold)} on hold` : undefined}
+          label={t.status.waited}
+          value={duration(t, waited)}
+          note={referral.days_on_hold ? t.status.includingHold(duration(t, referral.days_on_hold)) : undefined}
         />
-        <Fact label="Referral ID" value={<span className="font-mono">{referral.id}</span>} />
+        <Fact
+          label={t.status.referralId}
+          value={
+            <span className="font-mono" dir="ltr">
+              {referral.id}
+            </span>
+          }
+        />
       </dl>
     </Card>
   );
@@ -120,33 +135,92 @@ function Fact({ label, value, note }: { label: string; value: ReactNode; note?: 
   );
 }
 
-function EstimateCard({ data, contactHref }: { data: FamilyReferralResponse; contactHref?: string }) {
-  const { estimate } = data;
+type Ids = { contact?: string; updates?: string; wait?: string };
+
+/** "We'll let you know": how this family will hear when their estimate appears or changes. */
+function NotifyPromise({ data, kind, ids }: { data: FamilyReferralResponse; kind: "ready" | "change"; ids: Ids }) {
+  const { t } = useI18n();
+  const channels = useActiveChannels(data);
+  const say = kind === "ready" ? t.notify.readyBy : t.notify.changeBy;
+  return (
+    <div className="mt-4 flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200">
+      <Bell className="mt-0.5 size-4 shrink-0 text-slate-500" aria-hidden />
+      <div className="min-w-0">
+        {kind === "ready" && <p className="font-medium text-slate-900">{t.notify.promiseTitle}</p>}
+        {channels.length === 0 ? (
+          <p>{t.notify.noChannel}</p>
+        ) : (
+          channels.map(({ channel, to }) => (
+            <p key={channel}>
+              <bdi>{say[channel](to)}</bdi>
+            </p>
+          ))
+        )}
+        {ids.updates && (
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new Event(OPEN_NOTIFY_SETTINGS));
+              jumpTo(ids.updates!);
+            }}
+            className="mt-1 font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
+            {t.notify.settings}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EstimateCard({ data, ids }: { data: FamilyReferralResponse; ids: Ids }) {
+  const { t, fmt } = useI18n();
+  const { estimate, intake } = data;
 
   if (estimate.status === "unavailable" || !estimate.range_weeks) {
+    const reason = estimate.reason ?? "intake_incomplete";
+    const late = reason === "intake_incomplete" && !!intake && intake.days_since_received > intake.most_within_days;
+    const when =
+      reason === "intake_incomplete" && intake
+        ? t.estimate.whenIntake(t.units.days(intake.typical_days), t.units.days(intake.most_within_days), t.units.days(intake.days_since_received))
+        : reason === "on_hold"
+          ? t.estimate.whenHold
+          : reason === "beyond_horizon"
+            ? t.estimate.whenHorizon
+            : null;
     return (
-      <Card dashed>
+      <Card dashed tour="estimate">
         <EstimateHeader />
         <div className="mt-4 flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600">
             <CircleHelp className="size-6" aria-hidden />
           </span>
           <div>
-            <p className="text-xl font-semibold text-slate-900">No wait estimate right now</p>
-            <p className="mt-1 text-slate-600">{estimate.message}</p>
+            <p className="text-xl font-semibold text-slate-900">{t.estimate.noneTitle}</p>
+            <p className="mt-1 text-slate-600">{t.estimate.none[reason]}</p>
           </div>
         </div>
         <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200">
-          <p className="font-medium text-slate-900">Your place on the waitlist is kept.</p>
-          <p className="mt-1">Not having an estimate does not mean your referral was removed or cancelled. We'll show a range here as soon as we can calculate one.</p>
+          <p className="font-medium text-slate-900">{t.estimate.keptTitle}</p>
+          <p className="mt-1">{t.estimate.keptBody}</p>
         </div>
-        {contactHref && (
-          <a href={contactHref} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
-            <MessageCircleQuestion className="size-4" aria-hidden />
-            Questions? Contact the clinic
-          </a>
+        {when && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200">
+            <Clock className="mt-0.5 size-4 shrink-0 text-slate-500" aria-hidden />
+            <div>
+              <p className="font-medium text-slate-900">{t.estimate.whenTitle}</p>
+              <p className="mt-1">{when}</p>
+              {late && <p className="mt-1 font-medium text-amber-900">{t.estimate.whenIntakeLate}</p>}
+            </div>
+          </div>
         )}
-        <p className="mt-4 text-xs text-slate-500">Checked on {fmtLong(estimate.as_of)}</p>
+        <NotifyPromise data={data} kind="ready" ids={ids} />
+        {ids.contact && (
+          <button type="button" onClick={() => jumpTo(ids.contact!)} className={btn("primary", "mt-4 px-4 py-2.5")}>
+            <MessageCircleQuestion className="size-4" aria-hidden />
+            {t.estimate.contact}
+          </button>
+        )}
+        <p className="mt-4 text-xs text-slate-500">{t.estimate.checked(fmt.long(estimate.as_of))}</p>
       </Card>
     );
   }
@@ -156,58 +230,63 @@ function EstimateCard({ data, contactHref }: { data: FamilyReferralResponse; con
   const to = addWeeks(estimate.as_of, upper);
 
   return (
-    <Card dashed>
+    <Card dashed tour="estimate">
       <EstimateHeader />
-      <p className="mt-4 text-slate-600">Estimated time until your child's first speech-language assessment:</p>
-      <p className="mt-1 text-3xl font-bold tracking-tight text-indigo-950 sm:text-4xl">
-        About {lower}–{upper} more weeks
-      </p>
-      <p className="mt-2 text-slate-700">
-        Most likely between <strong>{fmtLong(from)}</strong> and <strong>{fmtLong(to)}</strong>.
-      </p>
+      <p className="mt-4 text-slate-600">{t.estimate.lead}</p>
+      <p className="mt-1 text-3xl font-bold tracking-tight text-indigo-950 sm:text-4xl rtl:tracking-normal">{t.estimate.range(estimate.range_weeks)}</p>
+      <p className="mt-2 text-slate-700">{t.estimate.between(fmt.long(from), fmt.long(to))}</p>
 
       <RangeBar asOf={estimate.as_of} lower={lower} upper={upper} />
 
       <div className="mt-5 flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
         <p>
-          <strong>This is not an appointment.</strong> {estimate.message}
+          <strong>{t.estimate.notAppointment}</strong> {t.estimate.message}
         </p>
       </div>
 
+      <NotifyPromise data={data} kind="change" ids={ids} />
+
       <details className="group mt-4 rounded-xl border border-slate-200">
         <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-800">
-          Why might this change?
+          {t.estimate.whyTitle}
           <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
         </summary>
-        <ul className="list-disc space-y-1 px-4 pb-4 pl-9 text-sm text-slate-600">
-          <li>More or fewer assessment appointments open up (for example, a clinician joins or is away).</li>
-          <li>Other families cancel or reschedule.</li>
-          <li>Some children with more urgent needs are seen sooner.</li>
-          <li>Your referral is put on hold, for example while waiting for other test results.</li>
+        <ul className="list-disc space-y-1 px-4 pb-4 ps-9 text-sm text-slate-600">
+          {t.estimate.why.map((w) => (
+            <li key={w}>{w}</li>
+          ))}
         </ul>
       </details>
+      <HowEstimated data={data} />
+
+      {ids.wait && (
+        <button type="button" onClick={() => jumpTo(ids.wait!)} className="mt-4 text-sm font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
+          {t.estimate.whileYouWait}
+        </button>
+      )}
 
       <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-500">
-        <Clock className="size-3.5" aria-hidden />
-        Calculated on {fmtLong(estimate.as_of)}. Updated when the clinic's availability changes.
+        <Clock className="size-3.5 shrink-0" aria-hidden />
+        {t.estimate.calculated(fmt.long(estimate.as_of))}
       </p>
     </Card>
   );
 }
 
 function EstimateHeader() {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Wait estimate</h2>
-      <Chip tone="indigo" icon={<Sparkles className="size-3.5" aria-hidden />}>
-        Estimate · may change
-      </Chip>
+      <CardHeading>{t.estimate.heading}</CardHeading>
+      <Tag icon={<Sparkles className="size-3.5" aria-hidden />}>{t.estimate.chip}</Tag>
     </div>
   );
 }
 
+/** Positions use inline-start, so the bar runs right to left in right-to-left languages. */
 function RangeBar({ asOf, lower, upper }: { asOf: string; lower: number; upper: number }) {
+  const { t, fmt } = useI18n();
   const max = Math.max(12, Math.ceil((upper + 2) / 4) * 4);
   const pct = (w: number) => `${(w / max) * 100}%`;
   const ticks = Array.from({ length: max / 4 + 1 }, (_, i) => i * 4);
@@ -215,18 +294,20 @@ function RangeBar({ asOf, lower, upper }: { asOf: string; lower: number; upper: 
   return (
     <div className="mt-6" aria-hidden>
       <div className="relative h-3 rounded-full bg-slate-100">
-        <div className="absolute inset-y-0 rounded-full bg-indigo-500/80" style={{ left: pct(lower), width: `calc(${pct(upper)} - ${pct(lower)})` }} />
-        <div className="absolute -top-1.5 h-6 w-1 -translate-x-1/2 rounded bg-slate-800" style={{ left: 0 }} />
+        <div className="absolute inset-y-0 rounded-full bg-indigo-500/80" style={{ insetInlineStart: pct(lower), width: `calc(${pct(upper)} - ${pct(lower)})` }} />
+        <div className="absolute -top-1.5 h-6 w-1 -translate-x-1/2 rounded bg-slate-800 rtl:translate-x-1/2" style={{ insetInlineStart: 0 }} />
       </div>
       <div className="relative mt-2 h-8 text-xs text-slate-500">
-        {ticks.map((t) => (
+        {ticks.map((tick) => (
           <span
-            key={t}
-            className={`absolute -translate-x-1/2 whitespace-nowrap ${t === 0 ? "translate-x-0 font-medium text-slate-800" : ""} ${t === max ? "-translate-x-full" : ""}`}
-            style={{ left: pct(t) }}
+            key={tick}
+            className={`absolute whitespace-nowrap ${
+              tick === 0 ? "font-medium text-slate-800" : tick === max ? "-translate-x-full rtl:translate-x-full" : "-translate-x-1/2 rtl:translate-x-1/2"
+            }`}
+            style={{ insetInlineStart: pct(tick) }}
           >
-            {t === 0 ? "Today" : `${t} wk`}
-            <span className="block text-[10px] text-slate-400">{fmtShort(addWeeks(asOf, t))}</span>
+            {tick === 0 ? t.estimate.today : t.units.wk(tick)}
+            <span className="block text-[10px] text-slate-400">{fmt.short(addWeeks(asOf, tick))}</span>
           </span>
         ))}
       </div>
@@ -234,51 +315,47 @@ function RangeBar({ asOf, lower, upper }: { asOf: string; lower: number; upper: 
   );
 }
 
-function BookedNextSteps({ data }: { data: FamilyReferralResponse }) {
-  return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Before your appointment</h2>
-      <ul className="mt-3 space-y-2 text-slate-700">
-        <li className="flex gap-2"><CalendarCheck className="mt-0.5 size-4 shrink-0 text-teal-700" aria-hidden />Check the time and location in the booking message from {data.clinic.name ?? "the clinic"}.</li>
-        <li className="flex gap-2"><CalendarClock className="mt-0.5 size-4 shrink-0 text-teal-700" aria-hidden />Can't make it? Let the clinic know early so another family can use the time.</li>
-      </ul>
-    </Card>
-  );
-}
-
 function Journey({ data }: { data: FamilyReferralResponse }) {
-  const { referral } = data;
+  const { t, fmt } = useI18n();
+  const { referral, appointment } = data;
   const booked = referral.status === "assessment_booked";
   const steps = [
-    { label: "Referral received", detail: fmtLong(referral.received_on), state: "done" },
+    { label: t.steps.received, detail: fmt.long(referral.received_on), state: "done" },
     {
-      label: referral.status === "on_hold" ? "On the waitlist (on hold)" : "On the waitlist",
-      detail: booked ? "Done" : "You are here",
+      label: referral.status === "on_hold" ? t.steps.waitlistHold : t.steps.waitlist,
+      detail: booked ? t.steps.done : t.steps.here,
       state: booked ? "done" : "current",
     },
-    { label: "Appointment booked", detail: booked && referral.appointment_on ? `For ${fmtLong(referral.appointment_on)}` : "The clinic contacts you", state: booked ? "current" : "todo" },
-    { label: "First assessment", detail: "With a speech-language pathologist", state: "todo" },
+    {
+      label: t.steps.booked,
+      detail: booked && referral.appointment_on ? t.steps.bookedFor(fmt.long(referral.appointment_on)) : t.steps.clinicContacts,
+      state: booked ? "current" : "todo",
+    },
+    { label: t.steps.assessment, detail: appointment?.clinician ? t.steps.withName(appointment.clinician.name) : t.steps.withSlp, state: "todo" },
   ] as const;
 
   return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Your referral's steps</h2>
+    <Card tour="steps">
+      <CardHeading>{t.steps.heading}</CardHeading>
       <ol className="mt-4 grid gap-0 sm:grid-cols-4 sm:gap-3">
         {steps.map((s, i) => (
           <li key={s.label} className="relative flex gap-3 pb-5 last:pb-0 sm:flex-col sm:pb-0">
             {i < steps.length - 1 && (
-              <span className={`absolute left-[11px] top-6 h-[calc(100%-1.5rem)] w-0.5 sm:left-6 sm:top-[11px] sm:h-0.5 sm:w-[calc(100%-0.75rem)] ${s.state === "done" ? "bg-teal-600" : "bg-slate-200"}`} aria-hidden />
+              <span
+                className={`absolute start-[11px] top-6 h-[calc(100%-1.5rem)] w-0.5 sm:start-6 sm:top-[11px] sm:h-0.5 sm:w-[calc(100%-0.75rem)] ${s.state === "done" ? "bg-slate-500" : "bg-slate-200"}`}
+                aria-hidden
+              />
             )}
             <span
               className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                s.state === "done" ? "bg-teal-600 text-white" : s.state === "current" ? "bg-white text-teal-700 ring-4 ring-teal-500" : "bg-slate-200 text-slate-500"
+                s.state === "done" ? "bg-slate-600 text-white" : s.state === "current" ? "bg-white text-slate-900 ring-4 ring-slate-700" : "bg-slate-200 text-slate-500"
               }`}
             >
               {s.state === "done" ? "✓" : i + 1}
             </span>
             <div>
               <p className={`font-medium ${s.state === "todo" ? "text-slate-500" : "text-slate-900"}`}>{s.label}</p>
-              <p className={`text-sm ${s.state === "current" ? "font-medium text-teal-700" : "text-slate-500"}`}>{s.detail}</p>
+              <p className={`text-sm ${s.state === "current" ? "font-semibold text-slate-900" : "text-slate-500"}`}>{s.detail}</p>
             </div>
           </li>
         ))}
@@ -288,71 +365,66 @@ function Journey({ data }: { data: FamilyReferralResponse }) {
 }
 
 function ContactCard({ id, referralId, clinic }: { id?: string; referralId: string; clinic: FamilyReferralResponse["clinic"] }) {
+  const { t } = useI18n();
   return (
-    <Card id={id} className="scroll-mt-20">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Questions? Contact the clinic</h2>
+    <Card id={id} tour="contact" className="scroll-mt-20">
+      <CardHeading id={id ? `${id}-heading` : undefined}>{t.contact.heading}</CardHeading>
       {clinic.name && <p className="mt-3 font-semibold text-slate-900">{clinic.name}</p>}
-      <p className="text-sm text-slate-600">Waitlist and intake team</p>
-      <div className="mt-4 space-y-2">
-        <a href={`mailto:${clinic.contact}?subject=Referral ${referralId}`} className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-teal-300 hover:bg-teal-50">
-          <Mail className="size-5 text-teal-700" aria-hidden />
-          <span>
-            <span className="block text-sm text-slate-500">Email</span>
-            <span className="font-medium text-slate-900">{clinic.contact}</span>
+      <p className="text-sm text-slate-600">{t.contact.team}</p>
+      <div className="mt-3 space-y-2">
+        <a
+          href={`mailto:${clinic.contact}?subject=${encodeURIComponent(`Referral ${referralId}`)}`}
+          className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 hover:border-teal-300 hover:bg-teal-50"
+        >
+          <Mail className="size-5 shrink-0 text-teal-700" aria-hidden />
+          <span className="min-w-0">
+            <span className="block text-sm text-slate-500">{t.contact.email}</span>
+            <span className="block break-words font-medium text-teal-800 underline decoration-teal-300 underline-offset-2" dir="ltr">
+              {clinic.contact}
+            </span>
           </span>
         </a>
         {clinic.phone && (
-          <a href={`tel:${clinic.phone}`} className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-teal-300 hover:bg-teal-50">
-            <Phone className="size-5 text-teal-700" aria-hidden />
-            <span>
-              <span className="block text-sm text-slate-500">Phone{clinic.hours ? ` · ${clinic.hours}` : ""}</span>
-              <span className="font-medium text-slate-900">{clinic.phone}</span>
+          <a href={`tel:${clinic.phone}`} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 hover:border-teal-300 hover:bg-teal-50">
+            <Phone className="size-5 shrink-0 text-teal-700" aria-hidden />
+            <span className="min-w-0">
+              <span className="block text-sm text-slate-500">
+                {t.contact.phone}
+                {clinic.hours ? ` · ${clinic.hours}` : ""}
+              </span>
+              <span className="block font-medium text-teal-800 underline decoration-teal-300 underline-offset-2" dir="ltr">
+                {clinic.phone}
+              </span>
             </span>
           </a>
         )}
       </div>
       <p className="mt-3 text-sm text-slate-600">
-        Have your referral ID ready: <span className="font-mono font-medium text-slate-900">{referralId}</span>
+        {t.contact.haveId}{" "}
+        <span className="font-mono font-medium text-slate-900" dir="ltr">
+          {referralId}
+        </span>
       </p>
     </Card>
   );
 }
 
-function WhileYouWait() {
-  const items = [
-    { icon: Library, title: "Play & Talk drop-in", where: "Riverside Public Library · Saturdays 10–11:30", note: "Songs, books and play, run by supervised students in child development programs." },
-    { icon: Users, title: "Parent coffee circle", where: "Northfield Community Centre · Wednesdays 6–7 pm", note: "Meet other families who are waiting for services." },
-  ];
+/** Folded away under the estimate it explains. */
+function HowEstimated({ data }: { data: FamilyReferralResponse }) {
+  const { t } = useI18n();
   return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">While you wait</h2>
-      <p className="mt-2 text-sm text-slate-600">Free community programs near you. These are general activities, not a replacement for the assessment.</p>
-      <ul className="mt-4 space-y-3">
-        {items.map(({ icon: Icon, title, where, note }) => (
-          <li key={title} className="flex gap-3 rounded-xl bg-slate-50 p-3">
-            <Icon className="mt-0.5 size-5 shrink-0 text-teal-700" aria-hidden />
-            <div>
-              <p className="font-medium text-slate-900">{title}</p>
-              <p className="text-sm text-slate-600">{where}</p>
-              <p className="mt-1 text-sm text-slate-500">{note}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-3 text-xs text-slate-400">Example programs for the prototype.</p>
-    </Card>
-  );
-}
-
-function HowEstimated() {
-  return (
-    <Card>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">How we estimate</h2>
-      <p className="mt-2 text-sm text-slate-600">
-        We look at how many families are ahead of you and how many first-assessment appointments the clinic expects to offer each week. We run that forward many times with normal ups and downs, like cancellations or staff time off.
-      </p>
-      <p className="mt-2 text-sm text-slate-600">The range covers most of those outcomes. About 1 in 10 families may be seen sooner, and about 1 in 10 may wait longer.</p>
-      <p className="mt-2 text-sm text-slate-600">The estimate doesn't use your child's diagnosis or personal details.</p>
-    </Card>
+    <details className="group mt-2 rounded-xl border border-slate-200">
+      <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-800">
+        {t.how.heading}
+        <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="space-y-2 px-4 pb-4 text-sm text-slate-600">
+        <p>{t.how.p1}</p>
+        <p>{t.how.p2}</p>
+        <p>{t.how.priority}</p>
+        {data.priority && data.priority !== "standard" && <p className="font-medium text-slate-800">{t.how.priorityRaised}</p>}
+        <p>{t.how.p3}</p>
+      </div>
+    </details>
   );
 }

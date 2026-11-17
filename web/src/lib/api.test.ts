@@ -3,9 +3,9 @@ import available from "../../../data/demo/estimate-available.json";
 import unavailable from "../../../data/demo/estimate-unavailable.json";
 import { DEFAULT_SLOTS, getFamilyReferral, listQueue } from "./api";
 import { holdDays } from "./dates";
-import type { DemoState } from "./types";
+import type { QueueState } from "./types";
 
-const base: DemoState = { slotsPerWeek: DEFAULT_SLOTS, intakeCompleted: [] };
+const base: QueueState = { slotsPerWeek: DEFAULT_SLOTS, intakeCompleted: [] };
 
 // The family view must stay compatible with the contract fixtures.
 function core(r: ReturnType<typeof getFamilyReferral>) {

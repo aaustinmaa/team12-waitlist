@@ -9,14 +9,15 @@ import { parseDay } from "../lib/dates";
 export const C = {
   blue: "#2a78d6",
   orange: "#eb6834",
-  rangeFill: "#b7d3f6",
-  band: "#f0efec",
-  grid: "#e1e0d9",
-  axis: "#c3c2b7",
-  muted: "#898781",
-  secondary: "#52514e",
-  primary: "#0b0b0b",
-  surface: "#ffffff",
+  // Chart chrome follows the light/dark theme (variables in index.css).
+  rangeFill: "var(--chart-range)",
+  band: "var(--chart-band)",
+  grid: "var(--chart-grid)",
+  axis: "var(--chart-axis)",
+  muted: "var(--chart-muted)",
+  secondary: "var(--chart-secondary)",
+  primary: "var(--chart-primary)",
+  surface: "var(--chart-surface)",
 };
 
 export interface Series {
@@ -150,6 +151,7 @@ export function TimeChart({
   heading,
   label,
   total,
+  endLabels = false,
 }: {
   points: TimePoint[];
   series: Series[];
@@ -161,12 +163,14 @@ export function TimeChart({
   label: string;
   /** stacked charts: label for the total row in the readout */
   total?: string;
+  /** write each line's latest value next to its last point */
+  endLabels?: boolean;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
   const titleId = useId();
 
-  const m = { top: 12, right: 12, bottom: 36, left: 34 };
+  const m = { top: 12, right: endLabels ? 52 : 12, bottom: 36, left: 34 };
   const plotW = Math.max(0, width - m.left - m.right);
   const plotH = height - m.top - m.bottom;
   const t0 = parseDay(points[0].date).getTime();
@@ -264,6 +268,28 @@ export function TimeChart({
           {series.map((s, i) => (
             <path key={s.key} d={pathFor(s.key, i)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
           ))}
+          {endLabels &&
+            (() => {
+              // Last non-empty value of each line, nudged apart when two would overlap.
+              const ends = series
+                .map((s, i) => {
+                  const last = [...points].reverse().find((pt) => (stacked ? true : pt.values[s.key] !== null && pt.values[s.key] !== undefined));
+                  if (!last) return null;
+                  const v = stacked ? stackTop(last, i) : (last.values[s.key] as number);
+                  return { s, last, v, yy: y(v) };
+                })
+                .filter((e) => e !== null)
+                .sort((a, b) => a.yy - b.yy);
+              for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 13) ends[i].yy = ends[i - 1].yy + 13;
+              return ends.map(({ s, last, v, yy }) => (
+                <g key={`end-${s.key}`}>
+                  <circle cx={x(last.date)} cy={y(v)} r={3.5} fill={s.color} stroke={C.surface} strokeWidth={1.5} />
+                  <text x={x(last.date) + 7} y={yy} dy="0.32em" fontSize={12} fontWeight={600} fill={C.primary} className="tabular-nums">
+                    {format(v)}
+                  </text>
+                </g>
+              ));
+            })()}
           {p && (
             <g>
               <line x1={x(p.date)} x2={x(p.date)} y1={m.top} y2={m.top + plotH} stroke={C.muted} />
@@ -433,5 +459,138 @@ export function TableView({ header, rows }: { header: string[]; rows: (string | 
         </table>
       </div>
     </details>
+  );
+}
+
+export interface BarPoint {
+  /** first day of the period */
+  date: string;
+  /** short label under the bar group, e.g. "Sep" */
+  label: string;
+  /** shown under the label on the first group and when the year changes */
+  year?: string;
+  values: Record<string, number>;
+}
+
+/**
+ * Grouped bars, one group per period (for example a month), with the value
+ * written above each bar when there is room. Groups inside `band` are drawn
+ * at full strength and the rest are faded, so the selected quarter stands out.
+ */
+export function BarChart({
+  points,
+  series,
+  band,
+  height = 240,
+  heading,
+  label,
+}: {
+  points: BarPoint[];
+  series: Series[];
+  band?: { start: string; end: string };
+  height?: number;
+  heading: (p: BarPoint) => string;
+  label: string;
+}) {
+  const [ref, width] = useWidth<HTMLDivElement>();
+  const [active, setActive] = useState<number | null>(null);
+  const titleId = useId();
+
+  const m = { top: 18, right: 8, bottom: 36, left: 34 };
+  const plotW = Math.max(0, width - m.left - m.right);
+  const plotH = height - m.top - m.bottom;
+  const max = Math.max(1, ...points.flatMap((p) => series.map((s) => p.values[s.key] ?? 0)));
+  const ticks = yTicks(max);
+  const top = ticks[ticks.length - 1];
+  const y = (v: number) => m.top + plotH - (v / top) * plotH;
+  const groupW = plotW / Math.max(1, points.length);
+  const inner = groupW * 0.78;
+  const barW = Math.max(2, inner / series.length - 1);
+  const gx = (i: number) => m.left + groupW * i + (groupW - inner) / 2;
+  const showValues = barW >= 13;
+  const labelEvery = Math.max(1, Math.ceil(points.length / Math.max(1, Math.floor(plotW / 40))));
+  const inBand = (p: BarPoint) => !band || (p.date >= band.start.slice(0, 8) + "01" && p.date <= band.end);
+
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") setActive((a) => Math.max(0, (a ?? points.length) - 1));
+    else if (e.key === "ArrowRight") setActive((a) => Math.min(points.length - 1, (a ?? -1) + 1));
+    else if (e.key === "Escape") setActive(null);
+    else return;
+    e.preventDefault();
+  };
+  const pick = (e: PointerEvent<SVGSVGElement>) => {
+    const px = e.clientX - e.currentTarget.getBoundingClientRect().left - m.left;
+    setActive(Math.min(points.length - 1, Math.max(0, Math.floor(px / groupW))));
+  };
+
+  const p = active === null ? null : points[active];
+
+  return (
+    <div ref={ref} className="relative w-full min-w-0" style={{ height }}>
+      {width > 0 && (
+        <svg
+          width={width}
+          height={height}
+          role="img"
+          aria-labelledby={titleId}
+          tabIndex={0}
+          onKeyDown={onKey}
+          onFocus={() => setActive(points.length - 1)}
+          onBlur={() => setActive(null)}
+          onPointerMove={pick}
+          onPointerDown={pick}
+          onPointerLeave={() => setActive(null)}
+          className="absolute inset-0 touch-pan-y outline-none"
+        >
+          <title id={titleId}>{`${label}. Use the left and right arrow keys to read each month.`}</title>
+          {p && <rect x={m.left + groupW * active!} y={m.top} width={groupW} height={plotH} fill={C.band} />}
+          <g fontSize={11} fill={C.muted}>
+            {ticks.map((t) => (
+              <g key={t}>
+                <line x1={m.left} x2={m.left + plotW} y1={y(t)} y2={y(t)} stroke={t === 0 ? C.axis : C.grid} />
+                <text x={m.left - 6} y={y(t)} dy="0.32em" textAnchor="end" className="tabular-nums">
+                  {t}
+                </text>
+              </g>
+            ))}
+          </g>
+          {points.map((pt, i) => {
+            const faded = !inBand(pt);
+            return (
+              <g key={pt.date} opacity={faded ? 0.35 : 1}>
+                {series.map((s, j) => {
+                  const v = pt.values[s.key] ?? 0;
+                  const x = gx(i) + j * (barW + 1);
+                  return (
+                    <g key={s.key}>
+                      <rect x={x} y={y(v)} width={barW} height={Math.max(0, m.top + plotH - y(v))} rx={Math.min(3, barW / 3)} fill={s.color} />
+                      {showValues && (
+                        <text x={x + barW / 2} y={y(v) - 4} textAnchor="middle" fontSize={10} fill={C.secondary} className="tabular-nums">
+                          {v}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+                {(i % labelEvery === 0 || pt.year) && (
+                  <g fontSize={11} fill={C.muted} textAnchor="middle" transform={`translate(${gx(i) + inner / 2},${m.top + plotH})`}>
+                    {i % labelEvery === 0 && <text y={16}>{pt.label}</text>}
+                    {pt.year && <text y={29}>{pt.year}</text>}
+                  </g>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      )}
+      {p && (
+        <Tooltip x={m.left + groupW * (active! + 0.5)} width={width}>
+          <p className="font-medium text-slate-700">{heading(p)}</p>
+          {series.map((s) => (
+            <TipRow key={s.key} color={s.color} value={String(p.values[s.key] ?? 0)} label={s.label} />
+          ))}
+        </Tooltip>
+      )}
+    </div>
   );
 }

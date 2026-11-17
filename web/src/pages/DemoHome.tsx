@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown, LayoutDashboard, RotateCcw, Smartphone } from 
 import { useDemo } from "../lib/demoState";
 import { CLINIC } from "../lib/api";
 import { FAMILY_CASES } from "./FamilyPage";
+import { btn } from "../components/ui";
 
 const TASKS = [
   {
@@ -25,6 +26,7 @@ const TASKS = [
       "Open the family view for referral demo-002.",
       "Find the confirmed status: still waiting, place kept.",
       "Understand that no estimate is available yet, and why.",
+      "Find when an estimate usually appears, and that they will be told when it does.",
       "Find the clinic's email or phone and the referral ID to mention.",
     ],
     watch: "Do they think the referral disappeared or was cancelled? Can they find a person to contact on their own?",
@@ -37,14 +39,15 @@ const TASKS = [
       "Open the staff dashboard.",
       "Raise slots per week from 5 to 7.",
       "Preview demo-001 and see its estimate shorten.",
-      "Mark intake done for demo-002 and see it get an estimate.",
+      "Mark intake done for demo-002 and see it get an estimate, and an update in Updates sent to families.",
+      "Change a referral's priority and see the line reorder.",
     ],
     watch: "Is the link between capacity and what families see clear? Is it obvious which screen is staff-only?",
   },
 ];
 
 export function DemoHome() {
-  const { isBaseline, reset } = useDemo();
+  const { isPristine, reset } = useDemo();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -119,8 +122,8 @@ export function DemoHome() {
         </div>
         <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 p-5 text-sm text-slate-600 sm:px-6">
           Before each participant, reset the demo so everyone starts from the same data.
-          <button onClick={reset} disabled={isBaseline} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-50">
-            <RotateCcw className="size-4" aria-hidden /> {isBaseline ? "Demo is at the starting state" : "Reset demo"}
+          <button onClick={reset} disabled={isPristine} className={btn("outline", "px-3 py-1.5 font-medium")}>
+            <RotateCcw className="size-4" aria-hidden /> {isPristine ? "Demo is at the starting state" : "Reset demo"}
           </button>
         </div>
       </details>
