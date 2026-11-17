@@ -39,27 +39,26 @@ export function FamilyReferralView({ data, compact = false }: Props) {
   // In the staff preview there is nothing to jump to, so the jump buttons are left out.
   const ids = compact ? {} : { contact: "contact", updates: "updates", wait: "while-you-wait" };
 
-  // Two rows. The first is about this referral: the main column, with the
-  // two short cards a family needs at hand (who to call, how they'll hear)
-  // beside it. The second is general help, across the full width, so the
-  // side column is never much longer than the main one.
+  // Two columns that each run straight down, so neither has to wait for the
+  // other: the referral itself on the left, and on the right the things a
+  // family keeps at hand (who to call, how they'll hear, what to do while
+  // waiting). The other health portals are least used, so they close the
+  // left column on a computer and the page on a phone.
+  const portals = <PortalsCard portals={clinic.portals ?? []} />;
   return (
-    <div dir={dir} lang={lang} className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
-      <div className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
-        <div className={compact ? "space-y-4" : "space-y-5 lg:col-span-2 lg:space-y-6"}>
-          <StatusCard data={data} compact={compact} />
-          {referral.status === "assessment_booked" ? <AppointmentCard data={data} /> : <EstimateCard data={data} ids={ids} />}
-          <Journey data={data} />
-        </div>
-        <aside className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
-          <ContactCard id={ids.contact} referralId={referral.id} clinic={clinic} />
-          <UpdatesCard data={data} id={ids.updates} readOnly={compact} />
-        </aside>
+    <div dir={dir} lang={lang} className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
+      <div className={compact ? "space-y-4" : "space-y-5 lg:col-span-2 lg:space-y-6"}>
+        <StatusCard data={data} compact={compact} />
+        {referral.status === "assessment_booked" ? <AppointmentCard data={data} /> : <EstimateCard data={data} ids={ids} />}
+        <Journey data={data} />
+        {!compact && <div className="hidden lg:block">{portals}</div>}
       </div>
-      <div className={compact ? "space-y-4" : "grid items-start gap-5 lg:grid-cols-3 lg:gap-6"}>
-        <WhileYouWait id={ids.wait} className={compact ? "" : "lg:col-span-2"} />
-        <PortalsCard portals={clinic.portals ?? []} />
-      </div>
+      <aside className={compact ? "space-y-4" : "space-y-5 lg:space-y-6"}>
+        <ContactCard id={ids.contact} referralId={referral.id} clinic={clinic} />
+        <UpdatesCard data={data} id={ids.updates} readOnly={compact} />
+        <WhileYouWait id={ids.wait} />
+        {compact ? portals : <div className="lg:hidden">{portals}</div>}
+      </aside>
     </div>
   );
 }
@@ -372,10 +371,10 @@ function ContactCard({ id, referralId, clinic }: { id?: string; referralId: stri
       <CardHeading id={id ? `${id}-heading` : undefined}>{t.contact.heading}</CardHeading>
       {clinic.name && <p className="mt-3 font-semibold text-slate-900">{clinic.name}</p>}
       <p className="text-sm text-slate-600">{t.contact.team}</p>
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-2">
         <a
           href={`mailto:${clinic.contact}?subject=${encodeURIComponent(`Referral ${referralId}`)}`}
-          className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-teal-300 hover:bg-teal-50"
+          className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 hover:border-teal-300 hover:bg-teal-50"
         >
           <Mail className="size-5 shrink-0 text-teal-700" aria-hidden />
           <span className="min-w-0">
@@ -386,7 +385,7 @@ function ContactCard({ id, referralId, clinic }: { id?: string; referralId: stri
           </span>
         </a>
         {clinic.phone && (
-          <a href={`tel:${clinic.phone}`} className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-teal-300 hover:bg-teal-50">
+          <a href={`tel:${clinic.phone}`} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 hover:border-teal-300 hover:bg-teal-50">
             <Phone className="size-5 shrink-0 text-teal-700" aria-hidden />
             <span className="min-w-0">
               <span className="block text-sm text-slate-500">

@@ -25,20 +25,38 @@ function useEnglishOnly() {
   return (hasFrench: boolean) => (lang === "en" || (lang === "fr" && hasFrench) ? null : t.wait.englishOnly);
 }
 
-function OutLink({ href, title, note, englishOnly }: { href: string; title: string; note: string; englishOnly: string | null }) {
+/**
+ * A link to another site. "row" is a plain line in a list, for the narrow
+ * side column; "box" is a bordered tile, for the wide main column.
+ */
+function OutLink({
+  href,
+  title,
+  note,
+  englishOnly,
+  variant = "box",
+}: {
+  href: string;
+  title: string;
+  note: string;
+  englishOnly: string | null;
+  variant?: "box" | "row";
+}) {
   const { t } = useI18n();
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full items-start gap-3 rounded-xl border border-slate-200 px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50"
+      className={`group flex h-full items-start gap-3 ${
+        variant === "box" ? "rounded-xl border border-slate-200 px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50" : "py-2.5"
+      }`}
     >
       <span className="min-w-0 flex-1">
         <span className="block font-medium text-teal-800 underline decoration-teal-300 underline-offset-2 group-hover:decoration-teal-700">{title}</span>
-        <span className="block text-sm text-slate-600">
+        <span className="block text-sm text-slate-500">
           {note}
-          {englishOnly && <span className="text-slate-500"> ({englishOnly})</span>}
+          {englishOnly && <> ({englishOnly})</>}
         </span>
       </span>
       <ExternalLink className="mt-1 size-4 shrink-0 text-teal-700" aria-hidden />
@@ -49,7 +67,8 @@ function OutLink({ href, title, note, englishOnly }: { href: string; title: stri
 
 const pick = (lang: LangCode, r: { url: string; fr?: string }) => (lang === "fr" && r.fr ? r.fr : r.url);
 
-export function WhileYouWait({ id, className = "" }: { id?: string; className?: string }) {
+/** Sized for the side column: plain lists rather than tiles, so it stays short. */
+export function WhileYouWait({ id }: { id?: string }) {
   const { t, lang } = useI18n();
   const englishOnly = useEnglishOnly();
   const local = [
@@ -57,33 +76,32 @@ export function WhileYouWait({ id, className = "" }: { id?: string; className?: 
     { icon: Users, ...t.wait.coffee },
   ];
   return (
-    <Card id={id} tour="wait" className={`@container scroll-mt-20 ${className}`}>
+    <Card id={id} tour="wait" className="scroll-mt-20">
       <CardHeading id={id ? `${id}-heading` : undefined}>{t.wait.heading}</CardHeading>
       <p className="mt-2 text-sm text-slate-600">{t.wait.intro}</p>
 
-      <h3 className="mt-4 text-sm font-medium text-slate-900">{t.wait.onlineTitle}</h3>
-      <ul className="mt-2 grid gap-2 @lg:grid-cols-2">
+      <h3 className="mt-4 text-xs font-medium text-slate-500">{t.wait.onlineTitle}</h3>
+      <ul className="mt-1 divide-y divide-slate-100">
         {ONLINE.map((r) => (
           <li key={r.key}>
-            <OutLink href={pick(lang, r)} title={t.wait[r.key].title} note={t.wait[r.key].note} englishOnly={englishOnly("fr" in r)} />
+            <OutLink variant="row" href={pick(lang, r)} title={t.wait[r.key].title} note={t.wait[r.key].note} englishOnly={englishOnly("fr" in r)} />
           </li>
         ))}
       </ul>
 
-      <h3 className="mt-5 text-sm font-medium text-slate-900">{t.wait.nearTitle}</h3>
-      <ul className="mt-2 grid gap-2 @lg:grid-cols-2">
-        {local.map(({ icon: Icon, title, where, note }) => (
-          <li key={title} className="flex h-full gap-3 rounded-xl bg-slate-50 p-3">
-            <Icon className="mt-0.5 size-5 shrink-0 text-slate-500" aria-hidden />
-            <div>
+      <h3 className="mt-3 text-xs font-medium text-slate-500">{t.wait.nearTitle}</h3>
+      <ul className="mt-1 divide-y divide-slate-100">
+        {local.map(({ icon: Icon, title, where }) => (
+          <li key={title} className="flex gap-3 py-2.5">
+            <Icon className="mt-0.5 size-4 shrink-0 text-slate-500" aria-hidden />
+            <div className="min-w-0">
               <p className="font-medium text-slate-900">{title}</p>
-              <p className="text-sm text-slate-600">{where}</p>
-              <p className="mt-1 text-sm text-slate-500">{note}</p>
+              <p className="text-sm text-slate-500">{where}</p>
             </div>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-slate-400">{t.wait.example}</p>
+      <p className="mt-2 text-xs text-slate-400">{t.wait.example}</p>
     </Card>
   );
 }
@@ -94,10 +112,10 @@ export function PortalsCard({ portals }: { portals: Portal[] }) {
   const englishOnly = useEnglishOnly();
   if (portals.length === 0) return null;
   return (
-    <Card>
+    <Card className="@container">
       <CardHeading>{t.portals.heading}</CardHeading>
       <p className="mt-2 text-sm text-slate-600">{t.portals.intro}</p>
-      <ul className="mt-3 space-y-2">
+      <ul className="mt-3 grid gap-2 @xl:grid-cols-3">
         {portals.map((p) => (
           <li key={p.id}>
             <OutLink href={p.url} title={p.name} note={t.portals.note[p.id] ?? ""} englishOnly={englishOnly(false)} />

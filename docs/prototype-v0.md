@@ -13,7 +13,7 @@ Live demo: https://aaustinmaa.github.io/team12-waitlist/ (updates after each mer
 - When there's no estimate, the page says the place on the waitlist is kept, when an estimate usually appears, that the family will be told, and links straight to the clinic contact.
 - Referral steps (received → on the waitlist → appointment booked → first assessment), clinic contact card, and a *While you wait* card that links to community programs (the non-technical solution).
 
-- **Layout.** On a computer, the side column holds only the two short cards a family needs at hand: how to contact the clinic and how they'll hear about changes. *While you wait* and the other health portals run across the full width below, and *How we estimate* folds away under the estimate. The side column went from about 2.6 times the height of the main column to shorter than it.
+- **Layout.** On a computer, two columns that each run straight down: the referral on the left (status, estimate or appointment, steps, then the other health portals), and the things a family keeps at hand on the right (contact the clinic, updates, while you wait). *How we estimate* folds away under the estimate, and *While you wait* uses plain lists with one-line notes so the right column ends about where the left one does. On a phone the order is the same, left column first, with the health portals last.
 
 **Staff dashboard** (`#/staff`, table on a computer, cards on a phone)
 
