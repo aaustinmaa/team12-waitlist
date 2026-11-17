@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
+  Bell,
   CalendarCheck,
   ClipboardCheck,
   ExternalLink,
@@ -15,13 +16,13 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { AS_OF, CLINIC, DEFAULT_SLOTS, getFamilyReferral, listQueue, newReferralEstimate } from "../lib/api";
+import { AS_OF, CLINIC, DEFAULT_SLOTS, clinicianName, getFamilyReferral, listQueue, newReferralEstimate } from "../lib/api";
 import { useDemo } from "../lib/demoState";
 import { fmtLong, fmtShort } from "../lib/dates";
-import type { StaffRow } from "../lib/types";
+import { PRIORITIES, type Notice, type Priority, type StaffRow } from "../lib/types";
 import { FamilyReferralView } from "../components/FamilyReferralView";
 import { StaffTabs } from "../components/StaffTabs";
-import { Card, Chip, REASON_LABEL, STATUS_LABEL, STATUS_TONE, weeksLabel } from "../components/ui";
+import { btn, Card, Chip, DISABLED, PRIORITY_LABEL, PRIORITY_TONE, REASON_LABEL, STATUS_LABEL, STATUS_TONE, weeksLabel } from "../components/ui";
 import { downloadCsv, toCsv } from "../lib/csv";
 
 type Filter = "all" | "ready" | "hold" | "intake" | "booked";
@@ -35,7 +36,7 @@ const FILTERS: { key: Filter; label: string; test: (r: StaffRow) => boolean }[] 
 ];
 
 export function StaffDashboard() {
-  const { state, setSlots, completeIntake, reset, isBaseline } = useDemo();
+  const { state, setSlots, completeIntake, setPriority, reset, isPristine } = useDemo();
   const rows = useMemo(() => listQueue(state), [state]);
   const newRange = useMemo(() => newReferralEstimate(state), [state]);
   const [filter, setFilter] = useState<Filter>("all");
@@ -49,6 +50,7 @@ export function StaffDashboard() {
     .filter(active.test)
     .filter((r) => r.id.toLowerCase().includes(query.trim().toLowerCase()))
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999) || a.received_on.localeCompare(b.received_on));
+  const actions = { onPreview: setPreviewId, onComplete: completeIntake, onPriority: setPriority };
 
   const preview = previewId ? getFamilyReferral(previewId, state) : null;
 
@@ -71,11 +73,9 @@ export function StaffDashboard() {
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Staff dashboard</h1>
           <p className="mt-1 text-slate-600">{CLINIC.service} · first-assessment waitlist · data as of {fmtLong(AS_OF)}</p>
         </div>
-        {!isBaseline && (
-          <button onClick={reset} className="inline-flex items-center gap-1.5 self-start rounded-lg px-3 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-white sm:self-auto">
-            <RotateCcw className="size-4" aria-hidden /> Reset demo
-          </button>
-        )}
+        <button onClick={reset} disabled={isPristine} className={btn("outline", "self-start sm:self-auto")} title={isPristine ? "The demo is at its starting state" : undefined}>
+          <RotateCcw className="size-4" aria-hidden /> {isPristine ? "Demo at starting state" : "Reset demo"}
+        </button>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3 lg:gap-6">
@@ -87,8 +87,19 @@ export function StaffDashboard() {
           <Stat icon={CalendarCheck} label="Booked" value={counts.booked} sub="first assessment scheduled" tone="green" />
           <div className="col-span-2 rounded-2xl border-2 border-dashed border-indigo-200 bg-white p-4 xl:col-span-4">
             <p className="text-sm text-slate-500">A family referred today would be told</p>
-            <p className="mt-1 text-2xl font-bold text-indigo-950">{newRange ? `${newRange.lower}–${newRange.upper} weeks` : "No estimate (too long to estimate)"}</p>
-            <p className="mt-1 text-sm text-slate-500">at {state.slotsPerWeek} first-assessment slots per week. Change the capacity to see how every family's estimate moves.</p>
+            <dl className="mt-2 grid grid-cols-3 gap-3">
+              {[...PRIORITIES].reverse().map((p) => (
+                <div key={p}>
+                  <dt className="text-xs font-medium text-slate-500">{PRIORITY_LABEL[p]} priority</dt>
+                  <dd className={`font-bold tabular-nums text-indigo-950 ${p === "standard" ? "text-2xl" : "text-lg"}`}>
+                    {newRange[p] ? `${newRange[p]!.lower}–${newRange[p]!.upper} wk` : "Too long to estimate"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-2 text-sm text-slate-500">
+              at {state.slotsPerWeek} first-assessment slots per week. Higher priorities join the line ahead of standard referrals. Change the capacity to see how every family's estimate moves.
+            </p>
           </div>
         </div>
       </div>
@@ -97,7 +108,7 @@ export function StaffDashboard() {
         <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Waitlist</h2>
-            <p className="text-sm text-slate-500">Ordered by referral date. Urgent referrals and holds are handled by clinical staff.</p>
+            <p className="text-sm text-slate-500">Ordered by priority, then referral date. Clinical staff set the priority; a change moves the line and every estimate behind it.</p>
           </div>
           <label className="relative block min-w-0 md:w-64">
             <span className="sr-only">Search referral ID</span>
@@ -146,7 +157,7 @@ export function StaffDashboard() {
           <button
             onClick={() => setSaved(exportWaitlist(shown, filter, state.slotsPerWeek))}
             disabled={shown.length === 0}
-            className="shrink-0 rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-40"
+            className={btn("primary", "shrink-0")}
           >
             Download spreadsheet
           </button>
@@ -163,6 +174,7 @@ export function StaffDashboard() {
                 <th className="px-3 py-3 font-medium" title="Calendar time since the referral was received. Time on hold is shown underneath and is part of this total.">Waiting</th>
                 <th className="hidden px-3 py-3 font-medium xl:table-cell">Age · Source</th>
                 <th className="px-3 py-3 font-medium">Status</th>
+                <th className="px-3 py-3 font-medium">Priority</th>
                 <th className="px-3 py-3 font-medium">Family sees</th>
                 <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
@@ -179,8 +191,9 @@ export function StaffDashboard() {
                   </td>
                   <td className="hidden px-3 py-3 text-slate-600 xl:table-cell"><span className="whitespace-nowrap">{r.age_group}</span><span className="block text-xs text-slate-400">{r.referral_source}</span></td>
                   <td className="px-3 py-3"><StatusCell r={r} /></td>
+                  <td className="px-3 py-3"><PriorityCell r={r} onChange={setPriority} /></td>
                   <td className="px-3 py-3"><EstimateCell r={r} /></td>
-                  <td className="px-5 py-3"><RowActions r={r} onPreview={setPreviewId} onComplete={completeIntake} /></td>
+                  <td className="px-5 py-3"><RowActions r={r} {...actions} /></td>
                 </tr>
               ))}
             </tbody>
@@ -204,9 +217,13 @@ export function StaffDashboard() {
                 </div>
                 <StatusCell r={r} />
               </div>
-              <div className="mt-3 flex items-end justify-between gap-2">
+              <div className="mt-3 flex items-center gap-2 text-sm">
+                <span className="text-slate-500">Priority</span>
+                <PriorityCell r={r} onChange={setPriority} />
+              </div>
+              <div className="mt-2 flex items-end justify-between gap-2">
                 <div className="text-sm"><span className="text-slate-500">Family sees: </span><EstimateCell r={r} /></div>
-                <RowActions r={r} onPreview={setPreviewId} onComplete={completeIntake} />
+                <RowActions r={r} {...actions} />
               </div>
             </li>
           ))}
@@ -214,8 +231,10 @@ export function StaffDashboard() {
         {shown.length === 0 && <p className="p-8 text-center text-sm text-slate-500">No referrals match.</p>}
       </Card>
 
+      <Outbox notices={state.notices} />
+
       {preview && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/40" onClick={() => setPreviewId(null)}>
+        <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={() => setPreviewId(null)}>
           <div
             role="dialog"
             aria-modal="true"
@@ -259,11 +278,14 @@ function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number): string
     "age_group",
     "referral_source",
     "status",
+    "priority",
     "intake_complete",
     "hold_start",
     "hold_end",
     "hold_reason",
     "appointment_on",
+    "appointment_time",
+    "clinician",
     "family_sees",
     "estimate_lower_weeks",
     "estimate_upper_weeks",
@@ -281,11 +303,14 @@ function exportWaitlist(rows: StaffRow[], filter: Filter, slots: number): string
     r.age_group,
     r.referral_source,
     STATUS_LABEL[r.status],
+    PRIORITY_LABEL[r.priority],
     r.intake_complete ? "yes" : "no",
     r.hold?.start,
     r.hold?.end,
     r.hold?.reason,
     r.appointment_on,
+    r.appointment?.start_time,
+    clinicianName(r.appointment?.clinician_id),
     r.estimate.range_weeks ? "estimate" : r.estimate.reason === "booked" ? "confirmed date" : "no estimate",
     r.estimate.range_weeks?.lower,
     r.estimate.range_weeks?.upper,
@@ -305,14 +330,14 @@ function CapacityCard({ slots, setSlots }: { slots: number; setSlots: (n: number
       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Assessment capacity</h2>
       <p className="mt-1 text-sm text-slate-600">First speech-language assessment slots the clinic plans to offer each week.</p>
       <div className="mt-4 flex items-center justify-between gap-3">
-        <button onClick={() => setSlots(slots - 1)} disabled={slots <= 1} className="grid size-11 place-items-center rounded-xl ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40" aria-label="Fewer slots">
+        <button onClick={() => setSlots(slots - 1)} disabled={slots <= 1} className={`grid size-11 place-items-center rounded-xl ring-1 ring-inset ring-slate-300 hover:bg-slate-50 ${DISABLED}`} aria-label="Fewer slots">
           <Minus className="size-5" />
         </button>
         <p className="text-center">
           <span className="block text-4xl font-bold tabular-nums text-slate-900">{slots}</span>
           <span className="text-sm text-slate-500">slots / week</span>
         </p>
-        <button onClick={() => setSlots(slots + 1)} disabled={slots >= 10} className="grid size-11 place-items-center rounded-xl ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40" aria-label="More slots">
+        <button onClick={() => setSlots(slots + 1)} disabled={slots >= 10} className={`grid size-11 place-items-center rounded-xl ring-1 ring-inset ring-slate-300 hover:bg-slate-50 ${DISABLED}`} aria-label="More slots">
           <Plus className="size-5" />
         </button>
       </div>
@@ -359,7 +384,12 @@ function StatusCell({ r }: { r: StaffRow }) {
           {r.hold.end ? `Was on hold ${fmtShort(r.hold.start)}–${fmtShort(r.hold.end)}` : `Since ${fmtShort(r.hold.start)}: ${r.hold.reason}`}
         </span>
       )}
-      {r.appointment_on && <span className="text-xs text-slate-500">On {fmtShort(r.appointment_on)}</span>}
+      {r.appointment_on && (
+        <span className="text-xs text-slate-500">
+          On {fmtShort(r.appointment_on)}
+          {r.appointment && ` at ${r.appointment.start_time} · ${clinicianName(r.appointment.clinician_id) ?? ""}`}
+        </span>
+      )}
     </div>
   );
 }
@@ -371,18 +401,112 @@ function EstimateCell({ r }: { r: StaffRow }) {
   return <span className="text-slate-500">No estimate · {REASON_LABEL[r.estimate.reason ?? "intake_incomplete"]}</span>;
 }
 
-function RowActions({ r, onPreview, onComplete }: { r: StaffRow; onPreview: (id: string) => void; onComplete: (id: string) => void }) {
+function RowActions({ r, onPreview, onComplete }: { r: StaffRow; onPreview: (id: string) => void; onComplete: (id: string) => void; onPriority: (id: string, p: Priority) => void }) {
   const needsIntake = r.status === "waiting_for_assessment" && !r.intake_complete;
   return (
     <div className="flex shrink-0 justify-end gap-1.5">
       {needsIntake && (
-        <button onClick={() => onComplete(r.id)} className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2.5 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200" title="Mark intake information as complete">
+        <button onClick={() => onComplete(r.id)} className={btn("soft", "px-2.5 py-1.5 text-xs font-medium")} title="Mark intake information as complete">
           <ClipboardCheck className="size-3.5" aria-hidden /> Intake done
         </button>
       )}
-      <button onClick={() => onPreview(r.id)} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-teal-800 ring-1 ring-teal-200 hover:bg-teal-50">
+      <button onClick={() => onPreview(r.id)} className={btn("outline", "px-2.5 py-1.5 text-xs font-medium")}>
         <Eye className="size-3.5" aria-hidden /> Preview
       </button>
     </div>
+  );
+}
+
+/** Clinical priority. Staff can change it for referrals still waiting; a booked referral's is fixed. */
+function PriorityCell({ r, onChange }: { r: StaffRow; onChange: (id: string, p: Priority) => void }) {
+  if (r.status === "assessment_booked") return <Chip tone={PRIORITY_TONE[r.priority]}>{PRIORITY_LABEL[r.priority]}</Chip>;
+  return (
+    <label className="inline-flex">
+      <span className="sr-only">Priority for {r.id}</span>
+      <select
+        value={r.priority}
+        onChange={(e) => onChange(r.id, e.target.value as Priority)}
+        className={`rounded-lg border px-2 py-1 text-xs font-medium outline-none focus-visible:border-teal-500 ${
+          r.priority === "urgent"
+            ? "border-rose-200 bg-rose-50 text-rose-800"
+            : r.priority === "high"
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-slate-300 bg-white text-slate-700"
+        }`}
+      >
+        {PRIORITIES.map((p) => (
+          <option key={p} value={p}>
+            {PRIORITY_LABEL[p]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+const NOTICE_LABEL: Record<Notice["kind"], string> = {
+  estimate_ready: "Estimate ready",
+  estimate_changed: "Estimate changed",
+  estimate_paused: "Estimate paused",
+};
+const CHANNEL_LABEL = { email: "email", sms: "text", browser: "device" } as const;
+
+/**
+ * What families were told after a staff change. Families hear about a new
+ * estimate, one that moved by 2 weeks or more, or one that can no longer be
+ * shown; small shifts are not announced.
+ */
+function Outbox({ notices }: { notices: Notice[] }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? notices : notices.slice(0, 6);
+  return (
+    <Card className="mt-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+          <Bell className="size-5 text-slate-500" aria-hidden />
+          Updates sent to families
+        </h2>
+        <span className="text-sm text-slate-500">{notices.length} since the demo was reset</span>
+      </div>
+      <p className="mt-1 text-sm text-slate-600">
+        Sent automatically when a family's estimate becomes available, moves by 2 weeks or more, or can no longer be shown. Each family chooses email, text or device notifications on their page.
+      </p>
+      {notices.length === 0 ? (
+        <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+          Nothing sent yet. Try <strong className="font-medium text-slate-700">Intake done</strong> on demo-002, or change the capacity.
+        </p>
+      ) : (
+        <>
+          <ul className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200">
+            {shown.map((n) => (
+              <li key={n.id} className="flex flex-col gap-1 px-4 py-2.5 text-sm sm:flex-row sm:items-center sm:gap-4">
+                <span className="w-24 shrink-0 font-mono font-medium text-slate-900">{n.referral_id}</span>
+                <span className="flex-1 text-slate-700">
+                  <span className="font-medium">{NOTICE_LABEL[n.kind]}</span>
+                  {n.range && (
+                    <>
+                      {" · "}
+                      {n.previous ? `${n.previous.lower}–${n.previous.upper} → ` : ""}
+                      {n.range.lower}–{n.range.upper} wk
+                    </>
+                  )}
+                  {!n.range && n.reason && ` · ${REASON_LABEL[n.reason]}`}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {n.channels.length ? n.channels.map((c) => CHANNEL_LABEL[c]).join(", ") : "page only"} ·{" "}
+                  {new Date(n.at).toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit" })}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {notices.length > 6 && (
+            <button type="button" onClick={() => setAll(!all)} className="mt-2 text-sm font-medium text-teal-700 underline underline-offset-2">
+              {all ? "Show fewer" : `Show all ${notices.length}`}
+            </button>
+          )}
+        </>
+      )}
+      <p className="mt-3 text-xs text-slate-400">Prototype: emails and texts are recorded here, not actually sent.</p>
+    </Card>
   );
 }

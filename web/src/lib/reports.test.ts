@@ -93,3 +93,26 @@ describe("csv", () => {
     expect(toCsv(["a", "b"], [[null, undefined]])).toBe("a,b\r\n,\r\n");
   });
 });
+
+describe("right now", () => {
+  it("matches the staff dashboard and the last point of the waitlist chart", async () => {
+    const { snapshot } = await import("./reports");
+    const s = snapshot();
+    const rows = listQueue({ slotsPerWeek: DEFAULT_SLOTS, intakeCompleted: [] });
+    expect(s.total).toBe(rows.length);
+    expect(s.onHold).toBe(rows.filter((r) => r.status === "on_hold").length);
+    expect(s.booked).toBe(rows.filter((r) => r.status === "assessment_booked").length);
+    expect(s.waiting + s.onHold + s.booked).toBe(s.total);
+    const last = weeklyWaitlist().at(-1)!;
+    expect(last.waiting + last.onHold).toBe(s.total);
+  });
+
+  it("orders the recent wait numbers", async () => {
+    const { snapshot } = await import("./reports");
+    const r = snapshot().recent;
+    expect(r.count).toBeGreaterThan(0);
+    expect(r.shortest!).toBeLessThanOrEqual(r.median!);
+    expect(r.median!).toBeLessThanOrEqual(r.p90!);
+    expect(r.p90!).toBeLessThanOrEqual(r.longest!);
+  });
+});

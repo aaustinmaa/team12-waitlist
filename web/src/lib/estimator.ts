@@ -3,10 +3,18 @@
 // This is a stand-in for backend/estimator. It does not learn from real data.
 // It asks: "if the clinic keeps offering about N first-assessment slots a week,
 // when does this referral's turn come?" and repeats that many times with random
-// week-to-week variation (cancellations, staff leave, urgent referrals placed
-// ahead). The 10th–90th percentile of those runs becomes the range a family sees.
+// week-to-week variation (cancellations, staff leave, higher-priority referrals
+// placed ahead). The 10th–90th percentile of those runs becomes the range a
+// family sees.
+//
+// Priority: the line is ordered by clinical priority first and referral date
+// second (see api.ts), so a referral's `position` already counts everyone the
+// clinic would see before it today. What the position can't know is who will
+// be referred later and placed ahead. `jumpsPerWeek` covers that: a standard
+// referral can be passed by new urgent and high-priority referrals, a
+// high-priority one only by new urgent referrals, and an urgent one by nobody.
 
-import type { FamilyReferralResponse, UnavailableReason } from "./types";
+import type { Estimate, Priority, UnavailableReason } from "./types";
 
 export const SIM = {
   runs: 400,
@@ -14,8 +22,11 @@ export const SIM = {
   /** chance a planned slot actually goes to the waitlist in a given week */
   slotKeptMin: 0.6,
   slotKeptMax: 1,
-  /** average urgent referrals per week that are booked ahead of the line */
-  urgentPerWeek: 0.25,
+  /**
+   * average new referrals per week that are placed ahead of a waiting referral
+   * of each priority (about 0.1 urgent and 0.15 high-priority referrals a week)
+   */
+  jumpsPerWeek: { urgent: 0, high: 0.1, standard: 0.25 } satisfies Record<Priority, number>,
   /** weeks between being offered a slot and the appointment itself (0 to this, uniform) */
   bookingLeadMaxWeeks: 2,
 };
@@ -72,7 +83,8 @@ function quantile(sorted: number[], q: number) {
  * first assessment. Returns the 10th–90th percentile range, or null when the
  * upper bound runs past the horizon.
  */
-export function simulateRange(position: number, slotsPerWeek: number, seedKey: string) {
+export function simulateRange(position: number, slotsPerWeek: number, seedKey: string, priority: Priority = "standard") {
+  const jumps = SIM.jumpsPerWeek[priority];
   const rand = mulberry32(hash(seedKey));
   const waits: number[] = [];
   for (let run = 0; run < SIM.runs; run++) {
@@ -84,7 +96,7 @@ export function simulateRange(position: number, slotsPerWeek: number, seedKey: s
       week++;
       let slots = 0;
       for (let s = 0; s < slotsPerWeek; s++) if (rand() < kept) slots++;
-      slots = Math.max(0, slots - poisson(rand, SIM.urgentPerWeek));
+      slots = Math.max(0, slots - poisson(rand, jumps));
       served += slots;
     }
     waits.push(served >= position ? week + Math.floor(rand() * (SIM.bookingLeadMaxWeeks + 1)) : Infinity);
@@ -96,13 +108,10 @@ export function simulateRange(position: number, slotsPerWeek: number, seedKey: s
   return { lower, upper: Math.max(lower + 1, Math.ceil(upperRaw)) };
 }
 
-export function availableEstimate(
-  asOf: string,
-  range: { lower: number; upper: number },
-): FamilyReferralResponse["estimate"] {
+export function availableEstimate(asOf: string, range: { lower: number; upper: number }): Estimate {
   return { status: "available", milestone: "first_assessment", as_of: asOf, range_weeks: range, message: MESSAGES.available };
 }
 
-export function unavailableEstimate(asOf: string, reason: UnavailableReason): FamilyReferralResponse["estimate"] {
+export function unavailableEstimate(asOf: string, reason: UnavailableReason): Estimate {
   return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES[reason], reason };
 }

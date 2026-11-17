@@ -13,17 +13,20 @@ import {
   monthlyFlow,
   previousQuarter,
   quarterTable,
+  snapshot,
   summarize,
   summaryTable,
+  waitSpread,
   weeklyWaitlist,
   type Quarter,
 } from "../lib/reports";
-import { C, Legend, RangeChart, TableView, TimeChart, type TimePoint } from "../components/charts";
+import { BarChart, C, Legend, RangeChart, TableView, TimeChart, type BarPoint, type TimePoint } from "../components/charts";
 import { StaffTabs } from "../components/StaffTabs";
 import { Card, Chip } from "../components/ui";
 
 const wk = (n: number | null) => (n === null ? "–" : `${n.toFixed(1)} wk`);
 const MONTH_YEAR = new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric", timeZone: "UTC" });
+const MONTH_SHORT = new Intl.DateTimeFormat("en-CA", { month: "short", timeZone: "UTC" });
 
 export function ReportsPage() {
   const [params, setParams] = useSearchParams();
@@ -38,6 +41,8 @@ export function ReportsPage() {
   const checks = useMemo(() => estimatePoints(quarter), [quarter]);
   const bySource = useMemo(() => breakdown(quarter, "referral_source"), [quarter]);
   const byAge = useMemo(() => breakdown(quarter, "age_group"), [quarter]);
+  const now = useMemo(snapshot, []);
+  const spread = useMemo(() => waitSpread(quarter), [quarter]);
 
   const band = { start: quarter.start, end: quarter.last };
   const insidePct = s.estimatesChecked ? Math.round((100 * s.estimatesInside) / s.estimatesChecked) : null;
@@ -48,7 +53,13 @@ export function ReportsPage() {
   };
 
   const weeklyPoints: TimePoint[] = weekly.map((w) => ({ date: w.date, values: { total: w.waiting + w.onHold, onHold: w.onHold } }));
-  const flowPoints: TimePoint[] = monthly.map((mm) => ({ date: mm.date, values: { referrals: mm.referrals, assessed: mm.assessed } }));
+  const flowBars: BarPoint[] = monthly.map((mm, i) => ({
+    date: mm.month,
+    label: MONTH_SHORT.format(new Date(`${mm.month}T00:00:00Z`)),
+    year: i === 0 || mm.month.slice(5, 7) === "01" ? mm.month.slice(0, 4) : undefined,
+    values: { referrals: mm.referrals, assessed: mm.assessed },
+  }));
+  const quarterMonths = monthly.filter((mm) => mm.month >= quarter.start && mm.month <= quarter.last);
   const waitPoints: TimePoint[] = monthly.map((mm) => ({ date: mm.date, values: { median: mm.medianWait, p90: mm.p90Wait } }));
   const monthOf = (p: TimePoint) => MONTH_YEAR.format(new Date(`${p.date}T00:00:00Z`));
 
@@ -86,6 +97,8 @@ export function ReportsPage() {
         </label>
         <p className="text-sm text-slate-500">Every number, chart and download on this page follows the quarter you pick.</p>
       </div>
+
+      <RightNow now={now} />
 
       <DownloadCard quarter={quarter} />
 
@@ -143,6 +156,7 @@ export function ReportsPage() {
             format={(n) => String(n)}
             heading={(p) => `Week of ${fmtShort(p.date)}, ${p.date.slice(0, 4)}`}
             label="Waitlist size by week, and how many of those were on hold"
+            endLabels
           />
           <TableView
             header={["Week of", "Waiting", "On hold", "Total"]}
@@ -152,25 +166,32 @@ export function ReportsPage() {
 
         <ChartCard
           title="Referrals in and first assessments out"
-          sub="Per month. When referrals stay above assessments, the waitlist grows."
+          sub={`Per month. When the blue bar is taller than the orange one, the waitlist grows. Months in ${quarter.label} are in full colour.`}
           legend={
             <Legend
               items={[
-                { label: "Referrals received", color: C.blue, kind: "line" },
-                { label: "First assessments", color: C.orange, kind: "line" },
+                { label: "Referrals received", color: C.blue, kind: "dot" },
+                { label: "First assessments", color: C.orange, kind: "dot" },
               ]}
             />
           }
+          className="lg:col-span-2"
         >
-          <TimeChart
-            points={flowPoints}
+          <p className="mb-2 text-sm text-slate-700">
+            {quarter.label}:{" "}
+            <span className="font-semibold tabular-nums text-slate-900">{s.referrals}</span> in ·{" "}
+            <span className="font-semibold tabular-nums text-slate-900">{s.assessed}</span> first assessments out ·{" "}
+            <span className="font-semibold tabular-nums text-slate-900">{signedCount(s.referrals - s.assessed - s.withdrawn)}</span> on the list
+            {s.withdrawn > 0 && <span className="text-slate-500"> (after {s.withdrawn} withdrawn)</span>}
+          </p>
+          <BarChart
+            points={flowBars}
             series={[
               { key: "referrals", label: "referrals received", color: C.blue },
               { key: "assessed", label: "first assessments", color: C.orange },
             ]}
             band={band}
-            format={(n) => String(n)}
-            heading={monthOf}
+            heading={(p) => MONTH_YEAR.format(new Date(`${p.date}T00:00:00Z`))}
             label="Referrals received and first assessments per month"
           />
           <TableView
@@ -190,8 +211,20 @@ export function ReportsPage() {
               ]}
             />
           }
+          className="lg:col-span-2"
         >
+          <dl className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl bg-slate-50 p-3 text-sm ring-1 ring-slate-200 sm:grid-cols-4">
+            <WaitNumber label={`Median, ${quarter.short}`} value={s.medianWait} />
+            <WaitNumber label="9 in 10 seen within" value={s.p90Wait} />
+            <WaitNumber label="Shortest" value={spread.shortest} />
+            <WaitNumber label="Longest" value={spread.longest} />
+            <p className="col-span-2 text-xs text-slate-500 sm:col-span-4">
+              {s.assessed} first assessments in {quarter.label}
+              {quarterMonths.length > 0 && <> · monthly medians {quarterMonths.map((mm) => wk(mm.medianWait)).join(", ")}</>}
+            </p>
+          </dl>
           <TimeChart
+            endLabels
             points={waitPoints}
             series={[
               { key: "median", label: "median", color: C.blue },
@@ -280,6 +313,81 @@ export function ReportsPage() {
 }
 
 const RESULT = { inside: "Inside", earlier: "Sooner", later: "Longer" } as const;
+
+const signedCount = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "±0");
+
+function WaitNumber({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="text-lg font-semibold tabular-nums text-slate-900">{wk(value)}</dd>
+    </div>
+  );
+}
+
+/**
+ * Today's numbers, kept apart from the quarter so the current state is the
+ * first thing staff see. Big type for the count on the list now; the waits
+ * next to it are in weeks.
+ */
+function RightNow({ now }: { now: ReturnType<typeof snapshot> }) {
+  return (
+    <section aria-labelledby="right-now" className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm break-inside-avoid sm:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="right-now" className="text-lg font-semibold text-slate-900">
+          Right now
+        </h2>
+        <p className="text-sm text-slate-500">As of {fmtLong(now.date)} · not affected by the quarter you pick</p>
+      </div>
+      <div className="mt-4 grid gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)] md:gap-8">
+        <div>
+          <p className="text-sm font-medium text-slate-600">Children on the waitlist</p>
+          <p className="mt-1 flex items-baseline gap-3">
+            <span className="text-6xl font-bold tabular-nums tracking-tight text-slate-900">{now.total}</span>
+            <span className={`text-sm font-medium ${now.change4w > 0 ? "text-rose-700" : now.change4w < 0 ? "text-emerald-700" : "text-slate-500"}`}>
+              {signedCount(now.change4w)} in the last 4 weeks
+            </span>
+          </p>
+          <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <div className="flex gap-1.5">
+              <dt className="text-slate-500">Waiting</dt>
+              <dd className="font-semibold tabular-nums text-slate-900">{now.waiting}</dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="text-slate-500">Booked</dt>
+              <dd className="font-semibold tabular-nums text-slate-900">{now.booked}</dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="text-slate-500">On hold</dt>
+              <dd className="font-semibold tabular-nums text-slate-900">{now.onHold}</dd>
+            </div>
+          </dl>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+            <p className="text-sm font-medium text-slate-700">Wait to first assessment, last 90 days</p>
+            <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{now.recent.median === null ? "–" : `${now.recent.median.toFixed(1)} weeks`}</p>
+            <p className="text-sm text-slate-500">median, {now.recent.count} children assessed since {fmtShort(now.recent.from)}</p>
+            <p className="mt-2 text-sm text-slate-700">
+              9 in 10 within <span className="font-semibold tabular-nums">{wk(now.recent.p90)}</span> · range{" "}
+              <span className="font-semibold tabular-nums">
+                {wk(now.recent.shortest)}–{wk(now.recent.longest)}
+              </span>
+            </p>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+            <p className="text-sm font-medium text-slate-700">Children still waiting have waited</p>
+            <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{now.waitedMedian === null ? "–" : `${now.waitedMedian.toFixed(1)} weeks`}</p>
+            <p className="text-sm text-slate-500">median so far, holds included</p>
+            <p className="mt-2 text-sm text-slate-700">
+              Longest so far <span className="font-semibold tabular-nums">{wk(now.waitedLongest)}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "No change");
