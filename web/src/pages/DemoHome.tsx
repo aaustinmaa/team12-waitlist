@@ -52,7 +52,7 @@ export function DemoHome() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <section className="max-w-3xl">
-        <p className="text-sm font-semibold text-teal-700">CS 497 · Team 12 · Prototype V.0</p>
+        <p className="text-sm font-semibold text-teal-700">CS 497 · Early Birds · Prototype V.0</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Clear wait information for families waiting for children's speech-language services</h1>
         <p className="mt-4 text-lg text-slate-600">
           Families see their confirmed referral status and, separately, an estimated wait range for the first assessment. The clinic's intake team sees the waitlist and can test how appointment capacity changes those estimates.

@@ -1,4 +1,4 @@
-# Working in Team 12 Waitlist
+# Working in Early Birds Waitlist
 
 This repo is a course prototype for one fictional clinic and one milestone: the first speech-language assessment. The [Thur-Team-12 team notebook](https://docs.google.com/document/d/11Euk5jO0elSPw9EsWZbbdWqb8sB7RWLwu1zwEFyLbCA/edit?tab=t.0) records the project scope and design decisions. If you cannot open it, work from the repo and ask for relevant excerpts only if needed. Use synthetic referrals and capacity data. Keep the confirmed referral status separate from the estimated range. The family view must keep the status and clinic contact visible when an estimate is unavailable. See [the response contract](docs/wait-time.md) before changing a data shape or wait-time behavior.
 

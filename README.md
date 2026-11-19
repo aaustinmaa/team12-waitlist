@@ -1,6 +1,6 @@
-# Team 12 Waitlist
+# Early Birds Waitlist
 
-This project prototypes wait-time estimates for families waiting for non-emergency childhood developmental services. The first demo covers one fictional clinic and the wait until a child's first speech-language assessment.
+Early Birds is CS 497 Thursday Team 12. This project prototypes wait-time estimates for families waiting for non-emergency childhood developmental services. The first demo covers one fictional clinic and the wait until a child's first speech-language assessment.
 
 | Path | What belongs here |
 | --- | --- |
