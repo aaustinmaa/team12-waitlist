@@ -76,6 +76,7 @@ const es: Dict = {
       on_hold: "Su derivación está en pausa, así que por ahora no podemos estimar su espera. Sigue en la lista de espera.",
       booked: "Su primera evaluación está programada. La clínica confirmó la fecha que aparece aquí.",
       beyond_horizon: "Su derivación sigue en la lista de espera. En este momento la espera es demasiado larga para estimarla de forma confiable.",
+      insufficient_data: "Su derivación sigue en la lista de espera. Esta clínica aún no tiene suficiente historial para una estimación fiable, así que no mostramos ninguna.",
     },
     keptTitle: "Se conserva su lugar en la lista de espera.",
     keptBody: "No tener una estimación no significa que su derivación se haya retirado o cancelado.",

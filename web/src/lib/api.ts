@@ -1,164 +1,177 @@
-// Data access for both views. Today it reads the synthetic fixtures in
-// data/demo and runs the simulated estimator in the browser. When backend/api
-// exists, replace these functions with fetch calls that return the same shapes.
+// Turns one clinic's imported records, its working state and the engine's
+// estimates into the shapes the two apps show (docs/wait-time.md).
+//
+// Everything is a pure function of a ClinicView, so the same code can later
+// run on the server and return the same shapes over HTTP.
 
-import historyJson from "../../../data/demo/clinic-history.json";
-import queueJson from "../../../data/demo/clinic-queue.json";
-import { availableEstimate, simulateRange, unavailableEstimate } from "./estimator";
-import {
-  PRIORITIES,
-  type ClinicHistory,
-  type ClinicQueue,
-  type FamilyAppointment,
-  type FamilyReferralResponse,
-  type Priority,
-  type QueueReferral,
-  type QueueState,
-  type StaffRow,
-} from "./types";
+import type { EngineModel, LiveEstimate } from "../engine/model";
+import type { ReferralRecord } from "../engine/types";
+import { quantile as q } from "../engine/util";
 import { daysBetween, holdDays } from "./dates";
+import type {
+  Clinic,
+  DemoState,
+  Estimate,
+  FamilyAppointment,
+  FamilyReferralResponse,
+  Priority,
+  QueueReferral,
+  StaffRow,
+  UnavailableReason,
+} from "./types";
 
-const queue = queueJson as unknown as ClinicQueue;
-const history = historyJson as unknown as ClinicHistory;
+export const MESSAGES: Record<"available" | UnavailableReason, string> = {
+  available: "This estimate may change as appointments become available. The clinic will confirm your appointment separately.",
+  intake_incomplete: "Your referral is still on the waitlist. We don't have enough information to estimate your wait yet.",
+  on_hold: "Your referral is on hold, so we can't estimate your wait right now. It is still on the waitlist.",
+  booked: "Your first assessment is booked. The clinic has confirmed the date shown here.",
+  beyond_horizon: "Your referral is still on the waitlist. The wait is currently too long for us to estimate reliably.",
+  insufficient_data: "Your referral is still on the waitlist. This clinic doesn't have enough history yet for a reliable estimate.",
+};
 
-export const AS_OF = queue.as_of;
-export const CLINIC = queue.clinic;
-export const DEFAULT_SLOTS = queue.capacity.assessment_slots_per_week;
-
-function intakeComplete(r: QueueReferral, state: QueueState) {
-  return r.intake_complete || state.intakeCompleted.includes(r.id);
+export interface ClinicView {
+  id: string;
+  info: Clinic;
+  /** the day the latest import describes */
+  asOf: string;
+  /** imported records with staff changes (priority, intake done) applied */
+  records: ReferralRecord[];
+  model: EngineModel;
+  estimates: Map<string, LiveEstimate>;
+  newReferral: Record<Priority, { lower: number; upper: number } | null>;
+  ops: DemoState;
 }
 
-export function priorityOf(r: QueueReferral, state: QueueState): Priority {
-  return state.priority?.[r.id] ?? r.priority ?? "standard";
-}
-
-const rank = (p: Priority) => PRIORITIES.indexOf(p);
-
-/**
- * Referrals that are ready to be offered a first assessment, in the order the
- * clinic would see them: highest priority first, then oldest referral first.
- */
-function readyLine(state: QueueState) {
-  return queue.referrals
-    .filter((r) => r.status === "waiting_for_assessment" && intakeComplete(r, state))
-    .sort(
-      (a, b) =>
-        rank(priorityOf(a, state)) - rank(priorityOf(b, state)) || a.received_on.localeCompare(b.received_on) || a.id.localeCompare(b.id),
-    );
-}
-
-function estimateFor(r: QueueReferral, position: number | null, state: QueueState) {
-  if (r.status === "assessment_booked") return unavailableEstimate(AS_OF, "booked");
-  if (r.status === "on_hold") return unavailableEstimate(AS_OF, "on_hold");
-  if (!intakeComplete(r, state) || position === null) return unavailableEstimate(AS_OF, "intake_incomplete");
-  const range = simulateRange(position, state.slotsPerWeek, `${r.id}:${state.slotsPerWeek}`, priorityOf(r, state));
-  return range ? availableEstimate(AS_OF, range) : unavailableEstimate(AS_OF, "beyond_horizon");
-}
-
-export function listQueue(state: QueueState): StaffRow[] {
-  const positions = new Map(readyLine(state).map((r, i) => [r.id, i + 1]));
-  return queue.referrals.map((r) => {
-    const position = positions.get(r.id) ?? null;
-    return {
-      ...r,
-      priority: priorityOf(r, state),
-      intake_complete: intakeComplete(r, state),
-      position,
-      days_waiting: daysBetween(r.received_on, AS_OF),
-      days_on_hold: holdDays(r.hold, AS_OF),
-      estimate: estimateFor(r, position, state),
-    };
+/** Imported records with this clinic's staff changes applied. */
+export function effectiveRecords(records: ReferralRecord[], ops: Pick<DemoState, "priority" | "intakeCompleted">, asOf: string) {
+  return records.map((r) => {
+    const p = ops.priority[r.referral_id];
+    const intake = !r.intake_completed_on && ops.intakeCompleted.includes(r.referral_id) ? asOf : r.intake_completed_on;
+    return p || intake !== r.intake_completed_on ? { ...r, ...(p ? { priority: p } : {}), intake_completed_on: intake } : r;
   });
 }
 
-/**
- * What a new referral logged today would be told, for each priority. A new
- * referral joins the line behind everyone of the same or a higher priority.
- */
-export function newReferralEstimate(state: QueueState): Record<Priority, { lower: number; upper: number } | null> {
-  const line = readyLine(state);
-  const out = {} as Record<Priority, { lower: number; upper: number } | null>;
-  for (const p of PRIORITIES) {
-    const ahead = line.filter((r) => rank(priorityOf(r, state)) <= rank(p)).length;
-    // "new:" keeps the seed the standard range has always used.
-    const seed = p === "standard" ? `new:${state.slotsPerWeek}` : `new-${p}:${state.slotsPerWeek}`;
-    out[p] = simulateRange(ahead + 1, state.slotsPerWeek, seed, p);
-  }
-  return out;
+function toEstimate(e: LiveEstimate | undefined, asOf: string): Estimate {
+  if (!e || e.status === "booked") return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES.booked, reason: "booked" };
+  if (e.range && e.reason === null) return { status: "available", milestone: "first_assessment", as_of: asOf, range_weeks: e.range, message: MESSAGES.available };
+  const reason = (e.reason ?? "intake_incomplete") as UnavailableReason;
+  return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES[reason], reason };
 }
 
-function quantile(sorted: number[], q: number) {
-  const i = (sorted.length - 1) * q;
-  const lo = Math.floor(i);
-  const hi = Math.ceil(i);
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
-}
-
-/**
- * How long this clinic has taken to complete intake, which is when an estimate
- * can first be shown. Measured on referrals received in the year before the
- * snapshot: the middle referral, and the time within which 9 in 10 were done.
- */
-export const INTAKE_TIMING = (() => {
-  const days = history.referrals
-    .filter((r) => daysBetween(r.received_on, AS_OF) <= 365)
-    .map((r) => daysBetween(r.received_on, r.intake_completed_on))
-    .sort((a, b) => a - b);
-  return { typical_days: Math.round(quantile(days, 0.5)), most_within_days: Math.ceil(quantile(days, 0.9)) };
-})();
-
-function hash(s: string) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  return h >>> 0;
-}
-
-/**
- * Stand-in for the contact details a clinic has on file. Nothing real: the
- * address is on example.com and the number is in the 555-01xx fictional range.
- */
-export function contactOnFile(id: string) {
-  const h = hash(id);
-  const letter = "abcdefghjklmnprstvw"[h % 19];
-  return { email: `${letter}•••••@example.com`, phone: `•••-•••-01${String((h >>> 8) % 100).padStart(2, "0")}` };
-}
-
-function appointmentFor(r: QueueReferral): FamilyAppointment | undefined {
-  if (r.status !== "assessment_booked" || !r.appointment_on || !r.appointment) return undefined;
-  const clinician = CLINIC.clinicians.find((c) => c.id === r.appointment!.clinician_id);
+function toQueue(r: ReferralRecord, e: LiveEstimate | undefined): QueueReferral {
+  const status = e?.status === "booked" ? "assessment_booked" : e?.status === "on_hold" ? "on_hold" : "waiting_for_assessment";
   return {
-    on: r.appointment_on,
-    start_time: r.appointment.start_time,
-    duration_minutes: r.appointment.duration_minutes,
-    timezone: CLINIC.timezone,
-    location: { name: CLINIC.name, address: CLINIC.address, ...(r.appointment.room ? { room: r.appointment.room } : {}) },
+    id: r.referral_id,
+    received_on: r.received_on,
+    status,
+    age_group: r.age_group ?? "–",
+    referral_source: r.referral_source ?? "–",
+    priority: r.priority,
+    intake_complete: r.intake_completed_on !== null,
+    hold: r.hold_start ? { start: r.hold_start, end: r.hold_end, reason: r.hold_reason ?? "Not given" } : null,
+    ...(status === "assessment_booked" && r.booked_for ? { appointment_on: r.booked_for } : {}),
+    ...(status === "assessment_booked" && r.booked_for && r.booked_time
+      ? { appointment: { start_time: r.booked_time, duration_minutes: 60, clinician_id: r.clinician ?? "" } }
+      : {}),
+  };
+}
+
+const isOpen = (r: ReferralRecord, asOf: string) => r.closed_on === null || r.closed_on > asOf;
+
+/** Every referral still on the waitlist, for the staff dashboard. */
+export function listQueue(v: ClinicView): StaffRow[] {
+  return v.records
+    .filter((r) => isOpen(r, v.asOf))
+    .map((r) => {
+      const e = v.estimates.get(r.referral_id);
+      return {
+        ...toQueue(r, e),
+        priority: r.priority,
+        position: e?.status === "ready" ? e.position : null,
+        days_waiting: daysBetween(r.received_on, v.asOf),
+        days_on_hold: holdDays(r.hold_start ? { start: r.hold_start, end: r.hold_end } : null, v.asOf),
+        estimate: toEstimate(e, v.asOf),
+        staff_range: e?.range ?? null,
+        ...(r.needs_review ? { needs_review: true } : {}),
+      };
+    });
+}
+
+export function clinicianName(v: ClinicView, id: string | undefined) {
+  if (!id) return null;
+  return v.info.clinicians.find((c) => c.id === id)?.name ?? id;
+}
+
+/**
+ * How long this clinic has taken to complete intake (when an estimate can
+ * first be shown), over referrals received in the year before the data date.
+ */
+export function intakeTiming(v: Pick<ClinicView, "records" | "asOf">) {
+  const days = v.records
+    .filter((r) => r.intake_completed_on && daysBetween(r.received_on, v.asOf) <= 365)
+    .map((r) => daysBetween(r.received_on, r.intake_completed_on!))
+    .sort((a, b) => a - b);
+  if (days.length === 0) return { typical_days: 21, most_within_days: 42 };
+  return { typical_days: Math.round(q(days, 0.5)), most_within_days: Math.ceil(q(days, 0.9)) };
+}
+
+function appointmentFor(v: ClinicView, r: ReferralRecord, status: string): FamilyAppointment | undefined {
+  if (status !== "assessment_booked" || !r.booked_for || !r.booked_time) return undefined;
+  const clinician = v.info.clinicians.find((c) => c.id === r.clinician);
+  return {
+    on: r.booked_for,
+    start_time: r.booked_time,
+    duration_minutes: 60,
+    timezone: v.info.timezone,
+    location: { name: v.info.name, address: v.info.address },
     clinician: clinician ? { name: clinician.name, role: clinician.role, registration: clinician.registration, languages: clinician.languages } : null,
   };
 }
 
-export function clinicianName(id: string | undefined) {
-  return CLINIC.clinicians.find((c) => c.id === id)?.name ?? null;
+/** The contact details on file, masked the way a family sees them. */
+export function maskedContact(r: ReferralRecord) {
+  const email = r.family_email ? r.family_email.replace(/^(.)[^@]*(@.*)$/, "$1•••••$2") : "";
+  const digits = (r.family_phone ?? "").replace(/\D/g, "");
+  const phone = digits.length >= 4 ? `•••-•••-${digits.slice(-4)}` : "";
+  return { email, phone };
 }
 
-export function getFamilyReferral(id: string, state: QueueState): FamilyReferralResponse | null {
-  const row = listQueue(state).find((r) => r.id === id);
-  if (!row) return null;
-  const appointment = appointmentFor(row);
+export function getFamilyReferral(v: ClinicView, id: string): FamilyReferralResponse | null {
+  const record = v.records.find((r) => r.referral_id === id);
+  if (!record || !isOpen(record, v.asOf)) return null;
+  const row = listQueue(v).find((r) => r.id === id)!;
+  const appointment = appointmentFor(v, record, row.status);
   return {
     referral: {
       id: row.id,
-      service: CLINIC.service,
+      service: v.info.service,
       status: row.status,
       received_on: row.received_on,
       ...(row.appointment_on ? { appointment_on: row.appointment_on } : {}),
       ...(row.hold ? { hold: row.hold, days_on_hold: row.days_on_hold } : {}),
     },
     estimate: row.estimate,
-    clinic: { contact: CLINIC.contact, name: CLINIC.name, phone: CLINIC.phone, hours: CLINIC.hours, portals: CLINIC.portals },
+    clinic: { contact: v.info.contact, name: v.info.name, phone: v.info.phone, hours: v.info.hours, portals: v.info.portals },
     priority: row.priority,
     ...(appointment ? { appointment } : {}),
-    intake: { ...INTAKE_TIMING, days_since_received: row.days_waiting },
-    contact_on_file: contactOnFile(row.id),
+    intake: { ...intakeTiming(v), days_since_received: row.days_waiting },
+    contact_on_file: maskedContact(record),
   };
+}
+
+/** Normalise an email or phone the way sign-in compares them. */
+export function contactKey(s: string) {
+  const t = s.trim().toLowerCase();
+  if (t.includes("@")) return t;
+  const digits = t.replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+/** The open referrals at this clinic whose family contact matches. */
+export function referralsForContact(v: Pick<ClinicView, "records" | "asOf">, contact: string) {
+  const key = contactKey(contact);
+  if (!key) return [];
+  return v.records.filter(
+    (r) => isOpen(r, v.asOf) && ((r.family_email && contactKey(r.family_email) === key) || (r.family_phone && contactKey(r.family_phone) === key)),
+  );
 }

@@ -83,6 +83,7 @@ const en = {
       on_hold: "Your referral is on hold, so we can't estimate your wait right now. It is still on the waitlist.",
       booked: "Your first assessment is booked. The clinic has confirmed the date shown here.",
       beyond_horizon: "Your referral is still on the waitlist. The wait is currently too long for us to estimate reliably.",
+      insufficient_data: "Your referral is still on the waitlist. This clinic doesn't have enough history yet for a reliable estimate, so we don't show one.",
     } satisfies Record<UnavailableReason, string>,
     keptTitle: "Your place on the waitlist is kept.",
     keptBody: "Not having an estimate does not mean your referral was removed or cancelled.",

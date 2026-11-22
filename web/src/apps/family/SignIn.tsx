@@ -1,0 +1,108 @@
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { btn, Card } from "../../components/ui";
+import { DEMO_FAMILIES } from "../../platform/clinics";
+import { usePlatform } from "../../platform/store";
+import { useFamilyText } from "./FamilyShell";
+
+/** Families sign in with a one-time code sent to the email or mobile the clinic has on file. */
+export function FamilySignIn() {
+  const p = usePlatform();
+  const ft = useFamilyText();
+  const nav = useNavigate();
+  const [contact, setContact] = useState("");
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const send = (e?: FormEvent, to = contact) => {
+    e?.preventDefault();
+    if (!to.trim()) return;
+    setContact(to);
+    p.requestCode(to);
+    setSent(true);
+    setError(null);
+    setCode("");
+  };
+  const verify = (e: FormEvent) => {
+    e.preventDefault();
+    if (p.verifyCode(contact, code)) nav("/my");
+    else setError(ft.wrongCode);
+  };
+  const latestCode = p.state.inbox[0]?.body.match(/\b\d{6}\b/)?.[0];
+
+  return (
+    <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{ft.signInTitle}</h1>
+      <p className="mt-2 text-slate-600">{ft.signInLead}</p>
+      <Card className="mt-6">
+        {!sent ? (
+          <form onSubmit={send} className="space-y-4">
+            <label className="block">
+              <span className="text-sm font-medium text-slate-800">{ft.contactLabel}</span>
+              <input
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                autoComplete="email"
+                inputMode="email"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-teal-500"
+              />
+              <span className="mt-1 block text-xs text-slate-500">{ft.contactHint}</span>
+            </label>
+            <button type="submit" disabled={!contact.trim()} className={btn("primary", "w-full py-2.5")}>
+              {ft.sendCode}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={verify} className="space-y-4">
+            <p className="text-sm text-slate-700">{ft.codeSent(contact)}</p>
+            <label className="block">
+              <span className="text-sm font-medium text-slate-800">{ft.codeLabel}</span>
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-center font-mono text-2xl tracking-[0.4em] outline-none focus:border-teal-500"
+              />
+            </label>
+            {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+            <button type="submit" disabled={code.length !== 6} className={btn("primary", "w-full py-2.5")}>
+              {ft.verify}
+            </button>
+            <div className="flex flex-wrap justify-between gap-2 text-sm">
+              <button type="button" onClick={() => setSent(false)} className="font-medium text-teal-700 underline underline-offset-2">
+                {ft.useOther}
+              </button>
+              {latestCode && (
+                <button type="button" onClick={() => setCode(latestCode)} className="text-slate-500 underline underline-offset-2">
+                  Demo: fill code from inbox
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+        <p className="mt-4 text-xs text-slate-500">{ft.privacy}</p>
+      </Card>
+
+      <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
+        <p className="font-medium text-slate-600">{ft.demoTry}</p>
+        <ul className="mt-2 space-y-2">
+          {DEMO_FAMILIES.map((f) => (
+            <li key={f.contact}>
+              <button type="button" onClick={() => send(undefined, f.contact)} className="font-mono font-medium text-teal-700 underline underline-offset-2">
+                {f.contact}
+              </button>
+              <span className="block text-xs text-slate-500">{f.note}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="mt-6 text-center text-sm">
+        <Link to="/clinic" className="font-medium text-slate-600 underline underline-offset-2">
+          {ft.staffLink}
+        </Link>
+      </p>
+    </div>
+  );
+}

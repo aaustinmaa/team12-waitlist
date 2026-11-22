@@ -76,6 +76,7 @@ const fr: Dict = {
       on_hold: "Votre demande est en suspens ; nous ne pouvons donc pas estimer votre attente pour le moment. Elle reste sur la liste d'attente.",
       booked: "Votre première évaluation est planifiée. La clinique a confirmé la date indiquée ici.",
       beyond_horizon: "Votre demande est toujours sur la liste d'attente. L'attente est actuellement trop longue pour que nous puissions l'estimer de façon fiable.",
+      insufficient_data: "Votre demande est toujours sur la liste d'attente. Cette clinique n'a pas encore assez d'historique pour une estimation fiable; nous n'en affichons donc pas.",
     },
     keptTitle: "Votre place sur la liste d'attente est conservée.",
     keptBody: "L'absence d'estimation ne veut pas dire que votre demande a été retirée ou annulée.",

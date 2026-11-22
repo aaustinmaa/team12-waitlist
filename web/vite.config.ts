@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-// The demo fixtures live in ../data/demo so the future backend can share them.
+// The sample clinic exports live in ../data/samples and are imported with ?raw.
 export default defineConfig({
   base: "./",
   plugins: [react(), tailwindcss()],

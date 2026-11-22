@@ -46,7 +46,7 @@ The `status` value `on_hold` marks a referral that is paused but still on the wa
 
 ## Priority
 
-The clinic's clinicians give each referral a priority: `urgent`, `high` or `standard` (the default). Referrals ready to book are seen in priority order, then by `received_on`, so a referral's place in line already counts everyone of a higher priority. The estimate also allows for referrals that arrive later and are placed ahead: on average 0.25 a week can pass a standard referral, 0.1 a week a high-priority one, and none an urgent one. Raising one referral's priority moves it up and pushes everyone it passes back by one place. The staff dashboard shows the range a new referral would be told at each priority.
+The clinic's clinicians give each referral a priority: `urgent`, `high` or `standard` (the default). Referrals ready to book are seen in priority order, then by `received_on`, so a referral's place in line already counts everyone of a higher priority. The estimate also allows for referrals that arrive later and are placed ahead, at the rate this clinic's own data shows, and for referrals received earlier that are still in intake or on hold rejoining ahead when they become ready. Raising one referral's priority moves it up and pushes everyone it passes back by one place. The staff dashboard shows the range a new referral would be told at each priority.
 
 ## Updates to families
 
@@ -63,20 +63,21 @@ Time on hold is the part of the calendar wait when the referral was paused for a
 
 A hold counts from its `start` day up to, but not including, its `end` day. An open hold counts up to the snapshot date. Whether a clinic restarts the line after a hold, and which hold reasons it excludes from its official wait, still needs to be confirmed with the clinic.
 
-## Referral history for staff reports
+## Referral records
 
-`data/demo/clinic-history.json` holds referrals that have left the waitlist. The Reports page joins it with `clinic-queue.json`, which holds the referrals still waiting.
+Every clinic export is converted into one record per referral (`web/src/engine/types.ts`). Dates are `YYYY-MM-DD`.
 
 | Field | Meaning |
 | --- | --- |
-| `id` | Synthetic referral ID (`h-` prefix) |
+| `referral_id` | The clinic system's ID for the referral |
+| `priority` | `urgent`, `high` or `standard` |
 | `received_on` | Date the clinic logged the referral |
-| `intake_completed_on` | Date intake information was complete, so an estimate could be shown |
-| `age_group`, `referral_source` | Same values as the queue |
-| `outcome` | `assessed` (first assessment done) or `withdrawn` |
-| `closed_on` | First-assessment date, or the date the referral was withdrawn |
-| `withdrawn_reason` | Only when `outcome` is `withdrawn` |
-| `hold` | Same shape as the queue: `start`, `end`, `reason` |
-| `estimate_at_intake` | Back-test: `as_of`, `lower_weeks`, `upper_weeks` of the range the family would have seen at `intake_completed_on`. `null` for withdrawn referrals |
+| `intake_completed_on` | Date the referral became ready to book, when an estimate can be shown |
+| `hold_start`, `hold_end`, `hold_reason` | The latest hold; `hold_end` is empty while it is open |
+| `booked_for`, `booked_time`, `clinician` | The booked first assessment, while the referral is open |
+| `closed_on`, `close_reason` | When and why it left the waitlist: `assessed` or `withdrawn` |
+| `age_group`, `referral_source` | Used by the reports only, never by the estimator |
+| `family_email`, `family_phone` | Used only for family sign-in and updates |
+| `needs_review` | Set when the referral vanished from the latest export without being closed |
 
-Wait to first assessment in the reports is `closed_on` minus `received_on`, holds included. Wait excluding holds subtracts the days on hold before `closed_on`. "Estimate held" means the weeks from `estimate_at_intake.as_of` to `closed_on` fell within `lower_weeks`–`upper_weeks`.
+Wait to first assessment in the reports is `closed_on` minus `received_on`, holds included. "Estimate held" compares the back-tested range at intake with the real wait, in weeks from intake. The estimator itself is described in [platform.md](platform.md).
