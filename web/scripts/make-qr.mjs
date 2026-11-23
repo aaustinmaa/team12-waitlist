@@ -1,4 +1,4 @@
-// Writes the two QR codes for the poster to docs/qr/ as SVG (print-sharp at any size) and PNG.
+// Writes the QR codes (family app, clinic portal, referrer page) to docs/qr/ as SVG (print-sharp at any size) and PNG.
 // Run from web/:  node scripts/make-qr.mjs [base-url]
 //
 // The clinic portal code adds ?local so every visitor who scans it gets a private
@@ -78,7 +78,7 @@ function png(isDark, size, scale) {
   ]);
 }
 
-for (const [name, url] of [["family-app", base], ["clinic-portal", `${base}clinic/?local`]]) {
+for (const [name, url] of [["family-app", base], ["clinic-portal", `${base}clinic/?local`], ["referrer-page", `${base}refer/`]]) {
   // Level L keeps the code sparse (bigger modules), which scans better from a printed poster.
   const qr = qrcode(0, "L");
   qr.addData(url);
