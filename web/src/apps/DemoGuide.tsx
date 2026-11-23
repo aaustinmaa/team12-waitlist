@@ -1,4 +1,6 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { PUBLIC_BASE } from "../boot";
+import { QrCode } from "../components/QrCode";
 import { Brand, DemoFooter, ThemeButton } from "../components/ThemeButton";
 import { btn, Card } from "../components/ui";
 import { CLINICS, DEMO_FAMILIES, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF } from "../platform/clinics";
@@ -42,6 +44,56 @@ const STEPS = [
   },
 ];
 
+/** Where the QR codes point. The public site by default; a laptop's address on the same Wi-Fi works too (npm run dev -- --host). */
+function QrCards() {
+  const [base, setBase] = useState(PUBLIC_BASE);
+  const root = base.endsWith("/") ? base : `${base}/`;
+  const apps = [
+    { key: "family", title: "Family app", sub: "Scan to check a child's referral", url: root },
+    { key: "clinic", title: "Clinic portal", sub: "Scan to sign in as clinic staff", url: `${root}clinic/` },
+  ];
+  const download = (key: string) => {
+    const svg = document.getElementById(`qr-${key}`)?.outerHTML;
+    if (!svg) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    a.download = `early-birds-${key}-qr.svg`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  return (
+    <section className="mt-10">
+      <div className="grid gap-4 sm:grid-cols-2">
+        {apps.map((a) => (
+          <Card key={a.key} className="flex flex-col items-center text-center">
+            <h2 className="text-xl font-bold text-slate-900">{a.title}</h2>
+            <p className="text-sm text-slate-500">{a.sub}</p>
+            <div id={`qr-${a.key}`} className="mt-4 w-56 max-w-full">
+              <QrCode text={a.url} label={`QR code for the ${a.title}: ${a.url}`} className="h-auto w-full" />
+            </div>
+            <p className="mt-3 break-all font-mono text-xs text-slate-500">{a.url}</p>
+            <button onClick={() => download(a.key)} className={btn("outline", "mt-3 print:hidden")}>
+              Download QR (SVG, for the poster)
+            </button>
+          </Card>
+        ))}
+      </div>
+      <label className="mt-4 flex flex-col gap-1 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-3 print:hidden">
+        <span className="shrink-0">QR codes point to</span>
+        <input value={base} onChange={(e) => setBase(e.target.value.trim())} className="w-full rounded-lg border border-slate-300 px-3 py-1.5 font-mono text-xs outline-none focus:border-teal-500 sm:max-w-md" />
+        {base !== PUBLIC_BASE && (
+          <button onClick={() => setBase(PUBLIC_BASE)} className="shrink-0 font-medium text-teal-700 underline">
+            Back to the public site
+          </button>
+        )}
+      </label>
+      <p className="mt-1 text-xs text-slate-500 print:hidden">
+        The public site shows a new version a few minutes after it is merged into main. Each phone keeps its own copy of the demo data until the shared database (Supabase) is connected.
+      </p>
+    </section>
+  );
+}
+
 export function DemoGuide() {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -59,14 +111,16 @@ export function DemoGuide() {
         <p className="mt-3 max-w-3xl text-slate-600">
           Two separate apps. Families sign in with a one-time code and see every referral linked to them. Clinic staff sign in to their own clinic's portal, bring in exports from whatever system they use, and see how the estimates were made and checked.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link to="/" className={btn("primary")}>
+        <div className="mt-6 flex flex-wrap gap-3 print:hidden">
+          <a href="../" className={btn("primary")}>
             Open the family app
-          </Link>
-          <Link to="/clinic" className={btn("dark")}>
+          </a>
+          <a href="../clinic/" className={btn("dark")}>
             Open the clinic portal
-          </Link>
+          </a>
         </div>
+
+        <QrCards />
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {STEPS.map((s) => (

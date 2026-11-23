@@ -15,7 +15,7 @@ Prototype V.1 is two apps on one engine: a **family app**, where families sign i
 
 ## See the prototype
 
-**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer. `#/demo` lists the demo accounts and a walkthrough. Every referral is synthetic.
+**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer. The two apps have separate addresses: the family app at `/` and the clinic portal at `/clinic/`. `/demo/` has both QR codes, the demo accounts and a walkthrough. Every referral is synthetic.
 
 ## Start here
 
@@ -37,9 +37,9 @@ Open the address Vite prints. `npm test` runs the engine, import and app tests o
 
 | App | Path | Who it is for |
 | --- | --- | --- |
-| Family app | `#/`, `#/my` | Parents and guardians, phone first. Sign in with a one-time code. |
-| Clinic portal | `#/clinic` | Clinic staff: waitlist, reports, data imports, how estimates are made, settings, audit log |
-| Demo guide | `#/demo` | Demo Day: accounts and a walkthrough |
+| Family app | `/` | Parents and guardians, phone first. Sign in with a one-time code. |
+| Clinic portal | `/clinic/` | Clinic staff: waitlist, reports, data imports, how estimates are made, settings, audit log |
+| Demo guide | `/demo/` | Demo Day: both QR codes, accounts and a walkthrough. Not linked from either app. |
 
 To regenerate the sample exports: `node data/samples/generate.mjs`.
 

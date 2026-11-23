@@ -17,7 +17,7 @@ clinic system export ──(upload │ nightly sync │ later: API/FHIR)──�
 | `web/src/engine/` | The estimator. Pure TypeScript, no UI, runs the same in a browser or on a server. |
 | `web/src/ingest/` | Reading any clinic export: CSV parsing, column profiling, mapping recipes, the Gemini and rule-based mappers, validation. |
 | `web/src/platform/` | The demo clinics and accounts, and the store that holds data, sessions, imports and the audit log. |
-| `web/src/apps/family/`, `web/src/apps/clinic/` | The two apps. `#/` is the family app, `#/clinic` the portal, `#/demo` a guide for Demo Day. |
+| `web/src/apps/family/`, `web/src/apps/clinic/` | The two apps, each with its own page and address: `index.html` (family, `/`), `clinic/index.html` (portal, `/clinic/`). Neither links to the other. `demo/index.html` is the Demo Day guide with both QR codes. |
 | `data/samples/` | Three fictional clinics' exports in three formats, made by `generate.mjs`. |
 | `supabase/` | The hosted version: database schema with row-level security, and the server function that holds the Gemini key. |
 
@@ -72,3 +72,7 @@ The Gemini key is **never** put in a `VITE_` variable, because those end up in t
 - Email and text messages. They show in the demo inbox and on the Waitlist's outbox.
 - Storage. Everything is in the browser's localStorage. Settings → Reset demo data puts it back.
 - All referral data. It is synthetic. See `data/samples/generate.mjs` for how it was tuned against public figures.
+
+## QR codes
+
+`/demo/` shows a QR code for each app and can download them as SVG. The same files are in `docs/qr/` for the poster; regenerate them with `node web/scripts/make-qr.mjs [base-url]`. They point to the public GitHub Pages site, which only shows this version after it is merged into `main`.

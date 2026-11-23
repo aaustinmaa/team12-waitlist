@@ -7,12 +7,12 @@ import { CAN, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF, clinicSetup } from "../../
 import { ClinicScope, usePlatform } from "../../platform/store";
 
 const NAV = [
-  { to: "/clinic/waitlist", label: "Waitlist", show: () => true },
-  { to: "/clinic/reports", label: "Reports", show: () => true },
-  { to: "/clinic/data", label: "Data", show: () => true },
-  { to: "/clinic/model", label: "Estimates", show: () => true },
-  { to: "/clinic/settings", label: "Settings", show: () => true },
-  { to: "/clinic/audit", label: "Audit log", show: CAN.manageSettings },
+  { to: "/waitlist", label: "Waitlist", show: () => true },
+  { to: "/reports", label: "Reports", show: () => true },
+  { to: "/data", label: "Data", show: () => true },
+  { to: "/model", label: "Estimates", show: () => true },
+  { to: "/settings", label: "Settings", show: () => true },
+  { to: "/audit", label: "Audit log", show: CAN.manageSettings },
 ];
 
 /** The clinic portal: staff accounts only, each clinic sees only its own data. */
@@ -29,7 +29,7 @@ export function ClinicShell() {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6">
-          <Link to="/clinic" className="shrink-0">
+          <Link to="/" className="shrink-0">
             <Brand sub={setup ? setup.info.name : "Clinic portal"} />
           </Link>
           <div className="ms-auto flex items-center gap-1">
@@ -91,7 +91,7 @@ function ClinicSignIn() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
       <h1 className="text-2xl font-bold tracking-tight text-slate-900">Clinic staff sign in</h1>
-      <p className="mt-2 text-slate-600">Accounts are created by your clinic's admin. Families use the family app instead.</p>
+      <p className="mt-2 text-slate-600">For clinic staff only. Accounts are created by your clinic's admin.</p>
       <Card className="mt-6">
         <form onSubmit={submit} className="space-y-4">
           <label className="block">
@@ -133,11 +133,6 @@ function ClinicSignIn() {
           ))}
         </ul>
       </div>
-      <p className="mt-6 text-center text-sm">
-        <Link to="/" className="font-medium text-slate-600 underline underline-offset-2">
-          Family app
-        </Link>
-      </p>
     </div>
   );
 }
@@ -148,7 +143,7 @@ export function NoDataYet() {
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
       <h1 className="text-2xl font-semibold text-slate-900">No referral data yet</h1>
       <p className="mt-2 text-slate-600">This clinic hasn't imported an export from its clinic system. Start on the Data page; it takes a couple of minutes.</p>
-      <Link to="/clinic/data" className={btn("primary", "mt-6")}>
+      <Link to="/data" className={btn("primary", "mt-6")}>
         Go to Data
       </Link>
     </div>

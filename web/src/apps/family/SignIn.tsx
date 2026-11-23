@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { btn, Card } from "../../components/ui";
 import { DEMO_FAMILIES } from "../../platform/clinics";
 import { usePlatform } from "../../platform/store";
@@ -98,11 +98,6 @@ export function FamilySignIn() {
           ))}
         </ul>
       </div>
-      <p className="mt-6 text-center text-sm">
-        <Link to="/clinic" className="font-medium text-slate-600 underline underline-offset-2">
-          {ft.staffLink}
-        </Link>
-      </p>
     </div>
   );
 }
