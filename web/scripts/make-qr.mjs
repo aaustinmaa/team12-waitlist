@@ -33,21 +33,43 @@ const chunk = (type, data) => {
   return Buffer.concat([len, body, crc]);
 };
 
-/** Black-and-white PNG, `scale` pixels per module. */
+/**
+ * The code on a white card with a soft drop shadow (like the storyboard codes on
+ * the poster), as an RGBA PNG with `scale` pixels per module.
+ */
 function png(isDark, size, scale) {
-  const px = size * scale;
+  const card = size * scale;
+  const off = Math.round(scale * 0.6); // shadow offset, right and down
+  const blur = Math.round(scale * 0.8);
+  const px = card + off + blur;
+  // Distance-based shadow: full strength under the offset card, fading over `blur` pixels.
+  const shadowAlpha = (x, y) => {
+    const dx = Math.max(off - x, 0, x - (off + card - 1));
+    const dy = Math.max(off - y, 0, y - (off + card - 1));
+    const d = Math.hypot(dx, dy);
+    return d >= blur ? 0 : Math.round(70 * (1 - d / blur));
+  };
   const rows = [];
   for (let y = 0; y < px; y++) {
-    const row = Buffer.alloc(px + 1, 255);
-    row[0] = 0;
-    for (let x = 0; x < px; x++) if (isDark(Math.floor(y / scale), Math.floor(x / scale))) row[x + 1] = 0;
+    const row = Buffer.alloc(px * 4 + 1, 0);
+    for (let x = 0; x < px; x++) {
+      const i = 1 + x * 4;
+      if (x < card && y < card) {
+        const v = isDark(Math.floor(y / scale), Math.floor(x / scale)) ? 0 : 255;
+        row[i] = row[i + 1] = row[i + 2] = v;
+        row[i + 3] = 255;
+      } else {
+        row[i] = row[i + 1] = row[i + 2] = 40;
+        row[i + 3] = shadowAlpha(x, y);
+      }
+    }
     rows.push(row);
   }
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(px, 0);
   ihdr.writeUInt32BE(px, 4);
   ihdr[8] = 8; // bit depth
-  ihdr[9] = 0; // greyscale
+  ihdr[9] = 6; // RGBA
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
@@ -57,11 +79,12 @@ function png(isDark, size, scale) {
 }
 
 for (const [name, url] of [["family-app", base], ["clinic-portal", `${base}clinic/?local`]]) {
-  const qr = qrcode(0, "M");
+  // Level L keeps the code sparse (bigger modules), which scans better from a printed poster.
+  const qr = qrcode(0, "L");
   qr.addData(url);
   qr.make();
   const n = qr.getModuleCount();
-  const q = 4;
+  const q = 2;
   const size = n + q * 2;
   const dark = (r, c) => r >= q && c >= q && r < n + q && c < n + q && qr.isDark(r - q, c - q);
   let d = "";
