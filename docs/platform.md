@@ -89,3 +89,5 @@ Step by step: [supabase-setup.md](supabase-setup.md). In the hosted version the 
 ## QR codes
 
 `/demo/` shows a QR code for each app. The poster carries two (family app, clinic portal); the referrer page's code is saved too. Copies are saved in `docs/qr/`; regenerate them with `node web/scripts/make-qr.mjs [base-url]`. They point to the public GitHub Pages site, which only shows this version after it is merged into `main`.
+
+**The poster prints these three addresses: `/`, `/clinic/?local` and `/refer/`.** Every merge into `main` redeploys to the same addresses, so new versions show up behind the printed codes with no reprinting. Don't move or rename these pages, and don't drop `?local` support; `web/src/entrypoints.test.ts` fails if you do.
