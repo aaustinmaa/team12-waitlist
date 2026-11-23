@@ -1,19 +1,21 @@
-# Team 12 Waitlist
+# Early Birds Waitlist
 
-This project prototypes wait-time estimates for families waiting for non-emergency childhood developmental services. The first demo covers one fictional clinic and the wait until a child's first speech-language assessment.
+Early Birds is CS 497 Thursday Team 12. It gives families waiting for non-urgent children's developmental services (speech-language first) a wait range they can trust. Each range is learned from the clinic's own data and checked against what really happened.
+
+Prototype V.1 is two apps on one engine: a **family app**, where families sign in with a one-time code, and a **clinic portal** for staff, where each clinic imports exports from its own system. See [docs/platform.md](docs/platform.md) for how it fits together.
 
 | Path | What belongs here |
 | --- | --- |
-| [`web/`](web/) | Family referral view and clinic staff dashboard |
-| [`backend/api/`](backend/api/) | API for the two views |
-| [`backend/estimator/`](backend/estimator/) | Wait-time estimation and its evaluation |
-| [`backend/ingestion/`](backend/ingestion/) | Validation and loading of referral and capacity data |
-| [`data/demo/`](data/demo/) | Synthetic cases for development and walkthroughs |
-| [`docs/`](docs/) | Shared definitions and response contract |
+| [`web/src/engine/`](web/src/engine/) | The wait-time estimator: fit, back-test and calibration, simulation |
+| [`web/src/ingest/`](web/src/ingest/) | Importing any clinic export: profiling, AI or rule-based column mapping, validation |
+| [`web/src/apps/`](web/src/apps/) | The family app and the clinic portal |
+| [`data/samples/`](data/samples/) | Synthetic exports from three fictional clinics, in three formats |
+| [`supabase/`](supabase/) | Hosted version: schema with row-level security, AI mapping function |
+| [`docs/`](docs/) | Platform overview, wait-time definition and response contract |
 
 ## See the prototype
 
-**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer, with no sign-in and nothing to install. It updates a few minutes after each merge into `main`. Every page uses fictional, synthetic data, and **Reset demo** on the home page undoes changes made in the staff dashboard.
+**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer. The two apps have separate addresses: the family app at `/` and the clinic portal at `/clinic/`. `/demo/` has both QR codes, the demo accounts and a walkthrough. Every referral is synthetic.
 
 ## Start here
 
@@ -31,20 +33,14 @@ npm install
 npm run dev
 ```
 
-Open the address Vite prints (usually http://localhost:5173). `npm test` checks the family responses against the contract fixtures, and `npm run build` makes a static copy in `web/dist/` that any static host can serve.
+Open the address Vite prints. `npm test` runs the engine, import and app tests on the sample exports. `npm run build` makes a static copy in `web/dist/`.
 
-| Page | Path | Who it is for |
+| App | Path | Who it is for |
 | --- | --- | --- |
-| Demo home | `#/` | Facilitators: pick a case, read the walkthrough tasks, reset the demo |
-| Family view | `#/family/demo-001`, `demo-002`, `demo-003` | Parents and guardians, on a phone or computer |
-| Staff dashboard | `#/staff` | Clinic intake team: waitlist, weekly capacity, family preview |
+| Family app | `/` | Parents and guardians, phone first. Sign in with a one-time code. |
+| Clinic portal | `/clinic/` | Clinic staff: waitlist, reports, data imports, how estimates are made, settings, audit log |
+| Demo guide | `/demo/` | Demo Day: both QR codes, accounts and a walkthrough. Not linked from either app. |
 
-[Prototype V.0 notes](docs/prototype-v0.md) cover what the prototype shows, how the simulated estimate works, and the peer-evaluation tasks.
-
-## Build on it
-
-1. Read the [wait-time definition and response contract](docs/wait-time.md).
-2. The browser app reads [synthetic data](data/demo/) through `web/src/lib/api.ts`. When `backend/api` exists, swap those functions for API calls that return the same shapes.
-3. `web/src/lib/estimator.ts` is a simulation stand-in. The real estimator belongs in `backend/estimator` and needs to handle referrals that are still waiting.
+To regenerate the sample exports: `node data/samples/generate.mjs`.
 
 Use synthetic data throughout the course prototype.

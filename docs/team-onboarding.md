@@ -1,4 +1,4 @@
-# Team 12: viewing, suggesting and making changes
+# Early Birds: viewing, suggesting and making changes
 
 The [GitHub repository](https://github.com/aaustinmaa/team12-waitlist) holds the code. The [Thur-Team-12 team notebook](https://docs.google.com/document/d/11Euk5jO0elSPw9EsWZbbdWqb8sB7RWLwu1zwEFyLbCA/edit?tab=t.0) holds the project scope, design decisions and course records. If your AI tool can't open the Google Doc, paste in only the paragraphs it needs for the task.
 
@@ -28,7 +28,7 @@ You don't need to code for the first three.
 
 Best for small text changes. Everything happens in the browser.
 
-1. Open the [repository](https://github.com/aaustinmaa/team12-waitlist) and find the file. Ask in Teams if you're not sure which one. Most wording on the family page is in `web/src/components/FamilyReferralView.tsx` and `web/src/lib/estimator.ts`.
+1. Open the [repository](https://github.com/aaustinmaa/team12-waitlist) and find the file. Ask in Teams if you're not sure which one. Most wording on the family page is in `web/src/components/FamilyReferralView.tsx`, `web/src/lib/i18n/` and `web/src/apps/family/text.ts`.
 2. Click the ✏️ pencil icon and make your edit. Only change the text between quotes or tags. Leave the code around it alone.
 3. Click **Commit changes…**. Because `main` is protected, GitHub offers to **create a new branch and start a pull request**. Keep that option, give the branch a short name such as `jess-family-wording`, and click **Propose changes**.
 4. Click **Create pull request**, then post the PR link in Teams.

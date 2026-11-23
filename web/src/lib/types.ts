@@ -22,7 +22,7 @@ export interface QueueAppointment {
   room?: string;
 }
 
-/** One row of the synthetic clinic queue (data/demo/clinic-queue.json). */
+/** One open referral as the staff and family views show it. */
 export interface QueueReferral {
   id: string;
   received_on: string;
@@ -75,7 +75,7 @@ export interface ClinicQueue {
   referrals: QueueReferral[];
 }
 
-export type UnavailableReason = "intake_incomplete" | "on_hold" | "booked" | "beyond_horizon";
+export type UnavailableReason = "intake_incomplete" | "on_hold" | "booked" | "beyond_horizon" | "insufficient_data";
 
 export interface Estimate {
   status: "available" | "unavailable";
@@ -135,6 +135,10 @@ export interface FamilyReferralResponse {
 
 /** What the staff dashboard sees per referral. */
 export interface StaffRow extends QueueReferral {
+  /** vanished from the latest export without being closed; staff should check it */
+  needs_review?: boolean;
+  /** the range the engine computed, shown to staff even when families can't see it yet */
+  staff_range?: { lower: number; upper: number } | null;
   priority: Priority;
   /** 1-based place among referrals ready to be booked, null if not in that line */
   position: number | null;
@@ -145,9 +149,10 @@ export interface StaffRow extends QueueReferral {
   estimate: Estimate;
 }
 
-/** The part of the demo state that changes the line and the estimates. */
+/** The part of the clinic's working state that changes the line and the estimates. */
 export interface QueueState {
-  slotsPerWeek: number;
+  /** planning scenario: first assessments a week added (or removed) on top of the clinic's own recent history */
+  extraSlots: number;
   /** staff can mark intake complete for a referral during the demo */
   intakeCompleted: string[];
   /** staff can change a referral's priority during the demo */
@@ -173,7 +178,18 @@ export interface Notice {
   channels: Channel[];
 }
 
-/** Adjustable demo state shared by both views. */
+/** One staff change to a referral's priority, with the reason given. */
+export interface PriorityChange {
+  referral_id: string;
+  from: Priority;
+  to: Priority;
+  reason: string;
+  by: string;
+  /** ISO timestamp */
+  at: string;
+}
+
+/** A clinic's working state on top of its imported records. */
 export interface DemoState extends QueueState {
   priority: Record<string, Priority>;
   /** per referral; a referral with no entry uses the default (email on) */
@@ -186,9 +202,10 @@ export interface DemoState extends QueueState {
   toursSeen: string[];
   /** per referral, the email and mobile number the family entered for updates */
   contacts: Record<string, { email?: string; phone?: string }>;
+  priorityLog: PriorityChange[];
 }
 
-/** One referral that has left the waitlist (data/demo/clinic-history.json). */
+/** One referral that has left the waitlist (legacy shape, kept for reference). */
 export interface HistoryReferral {
   id: string;
   received_on: string;

@@ -127,6 +127,7 @@ export const REASON_LABEL: Record<UnavailableReason, string> = {
   on_hold: "On hold",
   booked: "Already booked",
   beyond_horizon: "Too far out to estimate",
+  insufficient_data: "Not enough history yet",
 };
 
 export const PRIORITY_LABEL: Record<Priority, string> = {

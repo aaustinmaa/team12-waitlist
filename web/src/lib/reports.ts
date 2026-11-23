@@ -1,9 +1,6 @@
 // Numbers for the staff Reports page and its CSV downloads.
 //
-// It joins two synthetic files: clinic-history.json (referrals that already
-// had a first assessment or were withdrawn) and clinic-queue.json (referrals
-// still on the waitlist on the snapshot date). When backend/api exists, the
-// same summaries can come from the clinic's referral records.
+// It works on the signed-in clinic's imported records (see setReportData).
 //
 // Definitions used everywhere on the page:
 // - Wait to first assessment: referral received -> first assessment, in
@@ -16,17 +13,17 @@
 // - Estimate held: the actual wait from the estimate date fell inside the
 //   range the estimator would have shown when intake was complete.
 
-import historyJson from "../../../data/demo/clinic-history.json";
-import queueJson from "../../../data/demo/clinic-queue.json";
-import type { ClinicHistory, ClinicQueue, Hold } from "./types";
+import type { ClinicView } from "./api";
+import { calibrated } from "../engine/simulate";
+import type { Hold } from "./types";
 import { daysBetween, holdDays, parseDay } from "./dates";
 
-const history = historyJson as unknown as ClinicHistory;
-const queue = queueJson as unknown as ClinicQueue;
-
-export const REPORT_AS_OF = queue.as_of;
-/** First day the history is complete enough to report on. */
-export const REPORT_START = "2025-04-01";
+// The page reports on one clinic at a time. setReportData() points every
+// function below at that clinic's latest import; the Reports page calls it
+// before rendering (exports are live bindings, so readers see the update).
+export let REPORT_AS_OF = "2026-01-01";
+/** First quarter the history is complete enough to report on. */
+export let REPORT_START = "2025-04-01";
 
 const DAY = 86_400_000;
 const toStr = (d: Date) => d.toISOString().slice(0, 10);
@@ -36,7 +33,7 @@ const weeks = (from: string, to: string) => daysBetween(from, to) / 7;
 export type Outcome = "assessed" | "withdrawn";
 export type EstimateResult = "inside" | "earlier" | "later";
 
-/** A referral from either file, in one shape. */
+/** A referral, open or closed, in the shape the reports use. */
 export interface Case {
   id: string;
   received_on: string;
@@ -52,36 +49,42 @@ export interface Case {
   estimate: { as_of: string; lower: number; upper: number } | null;
 }
 
-export const CASES: Case[] = [
-  ...history.referrals.map((r) => ({
-    id: r.id,
-    received_on: r.received_on,
-    intake_completed_on: r.intake_completed_on,
-    age_group: r.age_group,
-    referral_source: r.referral_source,
-    outcome: r.outcome,
-    closed_on: r.closed_on,
-    appointment_on: null,
-    withdrawn_reason: r.withdrawn_reason ?? null,
-    hold: r.hold,
-    estimate: r.estimate_at_intake
-      ? { as_of: r.estimate_at_intake.as_of, lower: r.estimate_at_intake.lower_weeks, upper: r.estimate_at_intake.upper_weeks }
-      : null,
-  })),
-  ...queue.referrals.map((r) => ({
-    id: r.id,
-    received_on: r.received_on,
-    intake_completed_on: null,
-    age_group: r.age_group,
-    referral_source: r.referral_source,
-    outcome: null,
-    closed_on: null,
-    appointment_on: r.appointment_on ?? null,
-    withdrawn_reason: null,
-    hold: r.hold,
-    estimate: null,
-  })),
-];
+export let CASES: Case[] = [];
+let current: ClinicView | null = null;
+
+export function setReportData(v: ClinicView) {
+  if (current === v) return;
+  current = v;
+  REPORT_AS_OF = v.asOf;
+  // Start at the first quarter that begins at least nine months into the data, so early quarters aren't half-empty.
+  const first = v.records.reduce((m, r) => (r.received_on < m ? r.received_on : m), v.asOf);
+  const ready = addDays(first, 270);
+  const y = Number(ready.slice(0, 4));
+  const qStartMonth = Math.ceil(Number(ready.slice(5, 7)) / 3) * 3 + 1;
+  REPORT_START = qStartMonth > 12 ? `${y + 1}-01-01` : `${y}-${String(qStartMonth).padStart(2, "0")}-01`;
+  const backtest = new Map(v.model.backtest.cases.map((c) => [c.referral_id, c]));
+  const cal = v.model.backtest.calibration;
+  CASES = v.records.map((r) => {
+    const closed = r.closed_on !== null && r.closed_on <= v.asOf;
+    const bt = backtest.get(r.referral_id);
+    const range = bt ? calibrated(bt.raw, cal) : null;
+    return {
+      id: r.referral_id,
+      received_on: r.received_on,
+      intake_completed_on: r.intake_completed_on,
+      age_group: r.age_group ?? "Not recorded",
+      referral_source: r.referral_source ?? "Not recorded",
+      outcome: closed ? (r.close_reason === "assessed" ? "assessed" : "withdrawn") : null,
+      closed_on: closed ? r.closed_on : null,
+      appointment_on: closed ? null : r.booked_for,
+      withdrawn_reason: closed ? r.withdrawn_reason : null,
+      hold: r.hold_start ? { start: r.hold_start, end: r.hold_end, reason: r.hold_reason ?? "Not given" } : null,
+      estimate: bt && range ? { as_of: bt.as_of, lower: range.lower, upper: range.upper } : null,
+    };
+  });
+  QUARTERS = buildQuarters();
+  DEFAULT_QUARTER = [...QUARTERS].reverse().find((q) => !q.partial) ?? QUARTERS[QUARTERS.length - 1];
+}
 
 export function isOpenOn(c: Case, day: string) {
   return c.received_on <= day && (c.closed_on === null || c.closed_on > day);
@@ -107,7 +110,7 @@ export function waitWeeksExcludingHolds(c: Case) {
 
 export function estimateResult(c: Case): { actual: number; result: EstimateResult } | null {
   if (c.outcome !== "assessed" || !c.closed_on || !c.estimate) return null;
-  const actual = weeks(c.estimate.as_of, c.closed_on);
+  const actual = Math.floor(daysBetween(c.estimate.as_of, c.closed_on) / 7) + 1;
   const result = actual < c.estimate.lower ? "earlier" : actual > c.estimate.upper ? "later" : "inside";
   return { actual, result };
 }
@@ -153,7 +156,7 @@ function quarterOf(year: number, q: number): Quarter {
   };
 }
 
-export const QUARTERS: Quarter[] = (() => {
+function buildQuarters(): Quarter[] {
   const out: Quarter[] = [];
   let y = Number(REPORT_START.slice(0, 4));
   let q = Math.floor(Number(REPORT_START.slice(5, 7)) / 3) + 1;
@@ -165,10 +168,11 @@ export const QUARTERS: Quarter[] = (() => {
     if (q === 1) y++;
   }
   return out;
-})();
+}
 
+export let QUARTERS: Quarter[] = [];
 /** The most recent quarter that has fully ended. */
-export const DEFAULT_QUARTER = [...QUARTERS].reverse().find((q) => !q.partial) ?? QUARTERS[QUARTERS.length - 1];
+export let DEFAULT_QUARTER: Quarter = { key: "", label: "", short: "", start: "", end: "", last: "", partial: true };
 
 const inRange = (day: string | null, from: string, last: string) => !!day && day >= from && day <= last;
 

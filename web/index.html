@@ -3,9 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="description" content="Team 12 waitlist prototype: referral status and wait estimates for families, with a clinic staff dashboard. Synthetic data only." />
-    <title>Waitlist Prototype · Team 12</title>
     <script>
       // Apply the saved light/dark choice before the page paints (see src/lib/theme.tsx).
       try {
@@ -13,9 +10,14 @@
         if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
       } catch (e) {}
     </script>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="description" content="Check your child's referral and wait estimate. Course prototype (CS 497 Team 12); synthetic data only." />
+    <meta name="apple-mobile-web-app-title" content="Early Birds" />
+    <meta name="application-name" content="Early Birds" />
+    <title>Early Birds · Families</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/family-main.tsx"></script>
   </body>
 </html>
