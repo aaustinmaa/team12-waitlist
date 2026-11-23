@@ -58,13 +58,7 @@ Clinics export in different shapes: one row per referral or one row per event, d
 
 ## Switching on the hosted version (Supabase)
 
-1. Create a Supabase project in **Canada (Central)**.
-2. Run `supabase/migrations/0001_platform.sql` (SQL editor or `supabase db push`).
-3. `supabase secrets set GEMINI_API_KEY=…` and deploy `supabase/functions/propose-mapping`.
-4. Turn on Auth: email OTP for families; email and password plus MFA for staff, invite only.
-5. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `web/.env.local`. The anon key is meant to be public; row-level security protects the data. Then swap the store's actions in `web/src/platform/store.tsx` for Supabase calls. Each action is already a single place: commit an import, change priority, sign in, log.
-
-The Gemini key is **never** put in a `VITE_` variable, because those end up in the public site. In the local prototype an admin can paste a key in Settings. It stays in that browser only.
+Step by step: [supabase-setup.md](supabase-setup.md). In the hosted version the estimator still runs in the clinic portal. After every import or staff change it publishes each referral's estimate and a non-identifying clinic summary, and families read only those rows for their own referrals. Families never download the waitlist.
 
 ## What the demo simulates
 
