@@ -25,21 +25,37 @@ export function ThemeButton() {
   );
 }
 
-/** The product mark, shared by both apps. */
+/** The product's name, in one place so every portal and page title can share it. */
+export const PRODUCT_NAME = "ClearWait";
+
+/**
+ * The ClearWait mark: a dial whose answer is a highlighted arc (a range of weeks)
+ * rather than one time, the way every estimate in the app is a range, not a date.
+ * Its colours are fixed so the mark looks the same in light and dark mode; the
+ * same drawing is in public/favicon.svg.
+ */
+export function ClearWaitMark({ className = "size-8" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={`shrink-0 ${className}`} aria-hidden focusable="false">
+      <rect width="64" height="64" rx="15" fill="#33465f" />
+      <circle cx="32" cy="32" r="18" fill="none" stroke="#dfe8f6" strokeWidth="3.4" opacity="0.35" />
+      <path d="M48.91 25.84A18 18 0 0 1 43.57 45.79" fill="none" stroke="#e7c77c" strokeWidth="6" strokeLinecap="round" />
+      <path d="M32 17V21" stroke="#dfe8f6" strokeWidth="3" strokeLinecap="round" />
+      <path d="M32 32L42.6 34.8" stroke="#dfe8f6" strokeWidth="3.4" strokeLinecap="round" />
+      <circle cx="32" cy="32" r="3.4" fill="#dfe8f6" />
+    </svg>
+  );
+}
+
+/** The product mark and name, shared by every portal. */
 export function Brand({ sub, onDark = false }: { sub: string; /** on the staff sidebar's dark background */ onDark?: boolean }) {
   return (
-    <span className={`flex items-center gap-2.5 font-semibold ${onDark ? "text-nav-fg" : "text-slate-900"}`}>
-      <span
-        className={`grid size-8 shrink-0 place-items-center rounded-lg text-sm font-bold tracking-tight shadow-sm ring-1 ring-inset ${
-          onDark ? "bg-nav-accent text-nav ring-white/10" : "bg-teal-700 text-white ring-black/5 dark:bg-teal-300 dark:text-slate-950 dark:ring-white/10"
-        }`}
-        aria-hidden
-      >
-        EB
-      </span>
-      <span className="min-w-0 leading-tight">
-        Early Birds
-        <span className={`block truncate text-xs font-medium ${onDark ? "text-nav-fg/60" : "text-slate-500"}`}>{sub}</span>
+    <span className={`flex items-center gap-3 font-semibold ${onDark ? "text-nav-fg" : "text-slate-900"}`}>
+      <ClearWaitMark className={`size-9 rounded-[9px] shadow-sm ${onDark ? "ring-1 ring-white/15" : "dark:ring-1 dark:ring-white/10"}`} />
+      {/* Name and portal label on two lines with a little air between them. */}
+      <span className="flex min-w-0 flex-col gap-1 leading-none">
+        <span className="text-base tracking-tight">{PRODUCT_NAME}</span>
+        <span className={`truncate text-xs font-medium ${onDark ? "text-nav-fg/60" : "text-slate-500"}`}>{sub}</span>
       </span>
     </span>
   );
@@ -50,7 +66,7 @@ export function DemoFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white print:hidden">
       <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>CS 497 Team 12 (Early Birds) · Fictional clinics, synthetic referrals only</p>
+        <p>CS 497 Team 12 ({PRODUCT_NAME}) · Fictional clinics, synthetic referrals only</p>
         <p>Wait estimates are statistical ranges, not appointments or medical advice.</p>
       </div>
     </footer>

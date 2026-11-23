@@ -70,7 +70,7 @@ export function toIcs(ev: CalEvent, now: Date = new Date()) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//CS 497 Early Birds//Waitlist Prototype//EN",
+    "PRODID:-//CS 497 ClearWait//Waitlist Prototype//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

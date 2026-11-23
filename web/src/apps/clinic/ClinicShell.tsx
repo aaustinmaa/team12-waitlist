@@ -64,7 +64,7 @@ export function ClinicShell() {
     return (
       <div className="flex min-h-dvh flex-col">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3.5 sm:px-6">
             <Link to="/" className="shrink-0">
               <Brand sub="Clinic portal" />
             </Link>
@@ -83,7 +83,7 @@ export function ClinicShell() {
     <div className="flex min-h-dvh">
       {/* Desktop: a fixed sidebar so the sections are always in view. */}
       <aside className="sticky top-0 z-40 hidden h-dvh w-64 shrink-0 flex-col bg-nav text-nav-fg lg:flex print:hidden">
-        <Link to="/waitlist" className="block px-5 pb-4 pt-5">
+        <Link to="/waitlist" className="block px-5 pb-5 pt-6">
           <Brand sub="Clinic portal" onDark />
         </Link>
         <div className="mx-3 rounded-xl bg-nav-raised px-3 py-2.5">
@@ -131,7 +131,7 @@ export function ClinicShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur print:hidden">
           {/* Desktop: where you are. */}
-          <div className="hidden h-14 items-center gap-3 px-6 lg:flex">
+          <div className="hidden h-16 items-center gap-3 px-6 lg:flex">
             <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
               <span className="truncate text-slate-500">{setup.info.name}</span>
               {current && (
@@ -151,7 +151,7 @@ export function ClinicShell() {
 
           {/* Phone and tablet: brand row plus a scrolling row of sections. */}
           <div className="lg:hidden">
-            <div className="flex items-center gap-2 px-4 py-2.5 sm:px-6">
+            <div className="flex items-center gap-2 px-4 py-3 sm:px-6">
               <Link to="/waitlist" className="min-w-0 shrink">
                 <Brand sub={setup.info.name} />
               </Link>

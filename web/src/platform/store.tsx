@@ -625,7 +625,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
               id: uid(),
               at: new Date().toISOString(),
               to,
-              subject: "Your Early Birds sign-in code",
+              subject: "Your ClearWait sign-in code",
               body: `Your code is ${code}. It works for 10 minutes. If you didn't ask for it, you can ignore this message.`,
             },
             ...s.inbox,

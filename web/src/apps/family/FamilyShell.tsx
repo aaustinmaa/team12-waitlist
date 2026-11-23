@@ -28,9 +28,9 @@ export function FamilyShell() {
   if (signedIn && pathname === "/") return <Navigate to="/my" replace />;
 
   return (
-    <div className="flex min-h-dvh flex-col" dir={dir} lang={lang}>
+    <div className="flex min-h-dvh flex-col bg-wash" dir={dir} lang={lang}>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3.5 sm:px-6">
           <Link to={signedIn ? "/my" : "/"} className="shrink-0">
             <Brand sub={ft.appSub} />
           </Link>
@@ -60,9 +60,9 @@ export function FamilyShell() {
           </div>
         </div>
       </header>
-      <main className="relative flex-1">
-        {/* The family app is warmer than the staff portal: a soft wash of brand blue fading to a hint of sand behind the top of each page. */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50 via-amber-50/40 to-transparent print:hidden" />
+      <main className="relative isolate flex-1">
+        {/* The family app is warmer than the staff portal: a soft wash of brand blue fading into a plain, hue-free light grey behind the top of each page. */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
         {/* Keyed by page so each new page fades in instead of popping. */}
         <div key={pathname} className="animate-page-in">
           <Outlet />

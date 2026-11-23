@@ -35,6 +35,9 @@
   --color-nav-fg: oklch(97% 0.006 230);
   --color-nav-accent: oklch(80% 0.075 210);
 
+  /* Family pages: a pure neutral light grey (no hue at all, so nothing reads warm or pink next to the blue wash at the top). */
+  --color-wash: oklch(96.5% 0 0);
+
   --color-teal-50: oklch(97.6% 0.011 218);
   --color-teal-100: oklch(94.6% 0.024 218);
   --color-teal-200: oklch(89.2% 0.043 218);
@@ -226,6 +229,7 @@
   --color-nav-raised: oklch(21% 0.014 248);
   --color-nav-fg: oklch(95% 0.005 248);
   --color-nav-accent: oklch(76% 0.07 215);
+  --color-wash: oklch(17.8% 0.01 250);
 
   --chart-band: oklch(26% 0.012 248);
   --chart-grid: oklch(31.5% 0.013 248);
