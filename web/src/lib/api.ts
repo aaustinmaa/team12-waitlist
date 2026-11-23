@@ -40,6 +40,8 @@ export interface ClinicView {
   estimates: Map<string, LiveEstimate>;
   newReferral: Record<Priority, { lower: number; upper: number } | null>;
   ops: DemoState;
+  /** when the view holds only one family's referrals, the clinic-wide intake timing comes with it */
+  intake?: { typical_days: number; most_within_days: number };
 }
 
 /** Imported records with this clinic's staff changes applied. */
@@ -52,7 +54,9 @@ export function effectiveRecords(records: ReferralRecord[], ops: Pick<DemoState,
 }
 
 function toEstimate(e: LiveEstimate | undefined, asOf: string): Estimate {
-  if (!e || e.status === "booked") return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES.booked, reason: "booked" };
+  // Not published yet (for example right after an import): say so plainly, never guess.
+  if (!e) return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES.insufficient_data, reason: "insufficient_data" };
+  if (e.status === "booked") return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES.booked, reason: "booked" };
   if (e.range && e.reason === null) return { status: "available", milestone: "first_assessment", as_of: asOf, range_weeks: e.range, message: MESSAGES.available };
   const reason = (e.reason ?? "intake_incomplete") as UnavailableReason;
   return { status: "unavailable", milestone: "first_assessment", as_of: asOf, range_weeks: null, message: MESSAGES[reason], reason };
@@ -154,7 +158,7 @@ export function getFamilyReferral(v: ClinicView, id: string): FamilyReferralResp
     clinic: { contact: v.info.contact, name: v.info.name, phone: v.info.phone, hours: v.info.hours, portals: v.info.portals },
     priority: row.priority,
     ...(appointment ? { appointment } : {}),
-    intake: { ...intakeTiming(v), days_since_received: row.days_waiting },
+    intake: { ...(v.intake ?? intakeTiming(v)), days_since_received: row.days_waiting },
     contact_on_file: maskedContact(record),
   };
 }

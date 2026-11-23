@@ -3,6 +3,7 @@ import { btn, Card, CardHeading } from "../../components/ui";
 import { DEFAULT_GEMINI_MODEL } from "../../ingest/gemini";
 import { CAN, ROLE_LABEL, STAFF, clinicSetup } from "../../platform/clinics";
 import { useClinicId, usePlatform } from "../../platform/store";
+import { HOSTED } from "../../platform/hosted";
 
 export function SettingsPage() {
   const clinicId = useClinicId();
@@ -61,9 +62,12 @@ export function SettingsPage() {
           When an export's columns are new, AI reads a masked description of them (names, value types, a few examples with emails, phones and names removed) and proposes how they map. Staff confirm it. Rows are never sent.
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          Status: <strong className="text-slate-900">{p.state.ai.geminiKey ? `on · ${p.state.ai.geminiModel}` : "off · the matching rules are used instead"}</strong>
+          Status:{" "}
+          <strong className="text-slate-900">
+            {HOSTED ? "on · the key is kept on the server (Supabase secret GEMINI_API_KEY); if it's missing, the matching rules are used" : p.state.ai.geminiKey ? `on · ${p.state.ai.geminiModel}` : "off · the matching rules are used instead"}
+          </strong>
         </p>
-        {isAdmin ? (
+        {HOSTED ? null : isAdmin ? (
           <div className="mt-4 space-y-3">
             <label className="block text-sm">
               <span className="font-medium text-slate-800">Gemini API key</span>

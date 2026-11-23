@@ -4,6 +4,7 @@ import { Languages, Mail, X } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { LANGS, useI18n, type LangCode } from "../../lib/i18n";
 import { maskContact, usePlatform } from "../../platform/store";
+import { HOSTED } from "../../platform/hosted";
 import { FAMILY_TEXT } from "./text";
 
 export function useFamilyText() {
@@ -21,6 +22,7 @@ export function FamilyShell() {
     window.scrollTo(0, 0);
   }, [pathname]);
   const signedIn = !!p.state.familySession;
+  if (HOSTED && p.state.sync?.loading) return <p className="px-4 py-24 text-center text-slate-500">Loading…</p>;
   if (!signedIn && pathname !== "/") return <Navigate to="/" replace />;
   if (signedIn && pathname === "/") return <Navigate to="/my" replace />;
 
@@ -61,7 +63,7 @@ export function FamilyShell() {
         <Outlet />
       </main>
       <DemoFooter />
-      <DemoInbox />
+      {!HOSTED && <DemoInbox />}
     </div>
   );
 }

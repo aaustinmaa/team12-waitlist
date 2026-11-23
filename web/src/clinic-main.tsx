@@ -25,4 +25,5 @@ mount(
       </Route>
     </Routes>
   </HashRouter>,
+  "clinic",
 );

@@ -2,4 +2,4 @@
 import { mount } from "./boot";
 import { DemoGuide } from "./apps/DemoGuide";
 
-mount(<DemoGuide />);
+mount(<DemoGuide />, "demo");

@@ -3,7 +3,7 @@
 // clinic's data; the store commits the result once staff confirm.
 
 import type { ReferralRecord } from "../engine/types";
-import { directTransport, proposeByGemini } from "./gemini";
+import { proposeByGemini, type Transport } from "./gemini";
 import { parseDelimited, type Table } from "./parse";
 import { profileTable, type TableProfile } from "./profile";
 import { applyRecipe, type Recipe, type RowIssue } from "./recipe";
@@ -32,10 +32,11 @@ export interface AiSettings {
   geminiModel: string;
 }
 
-export async function proposeRecipe(a: Analysis, ai: AiSettings | null): Promise<{ recipe: Recipe; aiError: string | null }> {
-  if (ai?.geminiKey) {
+/** With a transport, the AI proposes the recipe (rules if it fails); without one, the rules do. */
+export async function proposeRecipe(a: Analysis, ai: Transport | null): Promise<{ recipe: Recipe; aiError: string | null }> {
+  if (ai) {
     try {
-      return { recipe: await proposeByGemini(a.profile, directTransport(ai.geminiKey, ai.geminiModel)), aiError: null };
+      return { recipe: await proposeByGemini(a.profile, ai), aiError: null };
     } catch (e) {
       return { recipe: proposeByRules(a.profile), aiError: e instanceof Error ? e.message : String(e) };
     }

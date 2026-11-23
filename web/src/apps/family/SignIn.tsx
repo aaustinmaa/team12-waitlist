@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { btn, Card } from "../../components/ui";
 import { DEMO_FAMILIES } from "../../platform/clinics";
 import { usePlatform } from "../../platform/store";
+import { DEMO_FAMILY, HOSTED } from "../../platform/hosted";
 import { useFamilyText } from "./FamilyShell";
 
 /** Families sign in with a one-time code sent to the email or mobile the clinic has on file. */
@@ -15,19 +16,33 @@ export function FamilySignIn() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const send = (e?: FormEvent, to = contact) => {
+  const [busy, setBusy] = useState(false);
+  const send = async (e?: FormEvent, to = contact) => {
     e?.preventDefault();
     if (!to.trim()) return;
     setContact(to);
-    p.requestCode(to);
+    setBusy(true);
+    const err = await p.requestCode(to);
+    setBusy(false);
+    setError(err);
+    if (err) return;
     setSent(true);
-    setError(null);
     setCode("");
   };
-  const verify = (e: FormEvent) => {
+  const verify = async (e: FormEvent) => {
     e.preventDefault();
-    if (p.verifyCode(contact, code)) nav("/my");
+    setBusy(true);
+    const ok = await p.verifyCode(contact, code);
+    setBusy(false);
+    if (ok) nav("/my");
     else setError(ft.wrongCode);
+  };
+  const tryDemo = async () => {
+    setBusy(true);
+    const err = await p.demoFamily();
+    setBusy(false);
+    if (err) setError(err);
+    else nav("/my");
   };
   const latestCode = p.state.inbox[0]?.body.match(/\b\d{6}\b/)?.[0];
 
@@ -49,7 +64,8 @@ export function FamilySignIn() {
               />
               <span className="mt-1 block text-xs text-slate-500">{ft.contactHint}</span>
             </label>
-            <button type="submit" disabled={!contact.trim()} className={btn("primary", "w-full py-2.5")}>
+            {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+            <button type="submit" disabled={!contact.trim() || busy} className={btn("primary", "w-full py-2.5")}>
               {ft.sendCode}
             </button>
           </form>
@@ -60,21 +76,21 @@ export function FamilySignIn() {
               <span className="text-sm font-medium text-slate-800">{ft.codeLabel}</span>
               <input
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-center font-mono text-2xl tracking-[0.4em] outline-none focus:border-teal-500"
               />
             </label>
             {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-            <button type="submit" disabled={code.length !== 6} className={btn("primary", "w-full py-2.5")}>
+            <button type="submit" disabled={code.length < 6 || busy} className={btn("primary", "w-full py-2.5")}>
               {ft.verify}
             </button>
             <div className="flex flex-wrap justify-between gap-2 text-sm">
               <button type="button" onClick={() => setSent(false)} className="font-medium text-teal-700 underline underline-offset-2">
                 {ft.useOther}
               </button>
-              {latestCode && (
+              {!HOSTED && latestCode && (
                 <button type="button" onClick={() => setCode(latestCode)} className="text-slate-500 underline underline-offset-2">
                   Demo: fill code from inbox
                 </button>
@@ -85,6 +101,15 @@ export function FamilySignIn() {
         <p className="mt-4 text-xs text-slate-500">{ft.privacy}</p>
       </Card>
 
+      {HOSTED ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
+          <p className="font-medium text-slate-600">No referral of your own? Try a demo family</p>
+          <p className="mt-1 text-xs text-slate-500">Synthetic data: two children at Maple Grove and one at Lakeshore ({DEMO_FAMILY.email}).</p>
+          <button type="button" onClick={tryDemo} disabled={busy} className={btn("outline", "mt-3 w-full")}>
+            Open the demo family
+          </button>
+        </div>
+      ) : (
       <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
         <p className="font-medium text-slate-600">{ft.demoTry}</p>
         <ul className="mt-2 space-y-2">
@@ -98,6 +123,7 @@ export function FamilySignIn() {
           ))}
         </ul>
       </div>
+      )}
     </div>
   );
 }

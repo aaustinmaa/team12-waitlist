@@ -5,6 +5,7 @@ import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { btn, Card, Chip } from "../../components/ui";
 import { CAN, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF, clinicSetup } from "../../platform/clinics";
 import { ClinicScope, usePlatform } from "../../platform/store";
+import { HOSTED } from "../../platform/hosted";
 
 const NAV = [
   { to: "/waitlist", label: "Waitlist", show: () => true },
@@ -66,7 +67,12 @@ export function ClinicShell() {
         )}
       </header>
       <main className="flex-1">
-        {staff ? (
+        {p.state.sync?.error && (
+          <p className="mx-auto mt-4 max-w-7xl rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800 sm:px-6">Couldn't reach the server: {p.state.sync.error}</p>
+        )}
+        {HOSTED && p.state.sync?.loading ? (
+          <p className="px-4 py-16 text-center text-slate-500">Loading…</p>
+        ) : staff ? (
           <ClinicScope clinicId={staff.clinicId}>
             <Outlet />
           </ClinicScope>
@@ -84,9 +90,12 @@ function ClinicSignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const submit = (e: FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(p.signInStaff(email, password));
+    setBusy(true);
+    setError(await p.signInStaff(email, password));
+    setBusy(false);
   };
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
@@ -103,8 +112,8 @@ function ClinicSignIn() {
             <input value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" type="password" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-teal-500" />
           </label>
           {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-          <button type="submit" className={btn("primary", "w-full py-2.5")}>
-            Sign in
+          <button type="submit" disabled={busy} className={btn("primary", "w-full py-2.5")}>
+            {busy ? "Signing in…" : "Sign in"}
           </button>
           <p className="text-xs text-slate-500">The hosted version adds a second step (an authenticator app code) and can use your clinic's Microsoft 365 sign-in.</p>
         </form>

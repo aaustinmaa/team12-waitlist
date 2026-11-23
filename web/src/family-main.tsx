@@ -18,4 +18,5 @@ mount(
       </Route>
     </Routes>
   </HashRouter>,
+  "family",
 );

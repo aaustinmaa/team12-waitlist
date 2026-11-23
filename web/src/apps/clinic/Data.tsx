@@ -7,6 +7,8 @@ import { analyse, convert, proposeRecipe, recipeFits, type Analysis } from "../.
 import { EVENT_KINDS, IDENTITY_FIELDS, type EventKind, type Recipe } from "../../ingest/recipe";
 import { fmtLong } from "../../lib/dates";
 import { CAN, clinicSetup, type SampleFile } from "../../platform/clinics";
+import { HOSTED, proposeMappingOnServer } from "../../platform/hosted";
+import { directTransport } from "../../ingest/gemini";
 import { useClinicId, usePlatform } from "../../platform/store";
 
 const FIELD_LABEL: Record<RecordField, string> = {
@@ -248,7 +250,8 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
       setOrigin("saved");
       return;
     }
-    proposeRecipe(analysis, p.state.ai.geminiKey ? p.state.ai : null).then((r) => {
+    const transport = HOSTED ? proposeMappingOnServer : p.state.ai.geminiKey ? directTransport(p.state.ai.geminiKey, p.state.ai.geminiModel) : null;
+    proposeRecipe(analysis, transport).then((r) => {
       if (!live) return;
       setRecipe(r.recipe);
       setAiError(r.aiError);
@@ -267,7 +270,7 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
       <Card className="mt-6">
         <p className="flex items-center gap-2 text-slate-700">
           <Loader2 className="size-4 animate-spin" aria-hidden />
-          Reading {file.name} and matching its columns{p.state.ai.geminiKey ? " with AI" : ""}…
+          Reading {file.name} and matching its columns{HOSTED || p.state.ai.geminiKey ? " with AI" : ""}…
         </p>
       </Card>
     );

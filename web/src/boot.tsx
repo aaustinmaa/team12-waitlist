@@ -7,8 +7,10 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { I18nProvider } from "./lib/i18n";
 import { PlatformProvider } from "./platform/store";
+import { setAppKind, type AppKind } from "./platform/hosted";
 
-export function mount(app: ReactNode) {
+export function mount(app: ReactNode, kind: AppKind) {
+  setAppKind(kind);
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <PlatformProvider>
