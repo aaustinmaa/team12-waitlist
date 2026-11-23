@@ -1,4 +1,4 @@
-# Early Birds: viewing, suggesting and making changes
+# ClearWait: viewing, suggesting and making changes
 
 The [GitHub repository](https://github.com/aaustinmaa/team12-waitlist) holds the code. The [Thur-Team-12 team notebook](https://docs.google.com/document/d/11Euk5jO0elSPw9EsWZbbdWqb8sB7RWLwu1zwEFyLbCA/edit?tab=t.0) holds the project scope, design decisions and course records. If your AI tool can't open the Google Doc, paste in only the paragraphs it needs for the task.
 

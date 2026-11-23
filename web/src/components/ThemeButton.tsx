@@ -66,7 +66,7 @@ export function DemoFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white print:hidden">
       <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>CS 497 Team 12 ({PRODUCT_NAME}) · Fictional clinics, synthetic referrals only</p>
+        <p>CS 497 Team 12 (Early Birds) · {PRODUCT_NAME} prototype · Fictional clinics, synthetic referrals only</p>
         <p>Wait estimates are statistical ranges, not appointments or medical advice.</p>
       </div>
     </footer>

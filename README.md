@@ -1,6 +1,6 @@
-# Early Birds Waitlist
+# ClearWait
 
-Early Birds is CS 497 Thursday Team 12. It gives families waiting for non-urgent children's developmental services (speech-language first) a wait range they can trust. Each range is learned from the clinic's own data and checked against what really happened.
+ClearWait is the technical solution of Early Birds, CS 497 Thursday Team 12. It gives families waiting for non-urgent children's developmental services (speech-language first) a wait range they can trust. Each range is learned from the clinic's own data and checked against what really happened.
 
 Prototype V.1 is three apps on one engine: a **family app**, where families sign in with a one-time code; a **clinic portal** for staff, where each clinic imports exports from its own system; and a **referrer page**, where family doctors compare clinics' expected waits before they refer. See [docs/platform.md](docs/platform.md) for how it fits together.
 
