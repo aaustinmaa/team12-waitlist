@@ -52,15 +52,6 @@ function QrCards() {
     { key: "family", title: "Family app", sub: "Scan to check a child's referral", url: root },
     { key: "clinic", title: "Clinic portal", sub: "Scan to sign in as clinic staff", url: `${root}clinic/` },
   ];
-  const download = (key: string) => {
-    const svg = document.getElementById(`qr-${key}`)?.outerHTML;
-    if (!svg) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-    a.download = `early-birds-${key}-qr.svg`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  };
   return (
     <section className="mt-10">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -72,9 +63,6 @@ function QrCards() {
               <QrCode text={a.url} label={`QR code for the ${a.title}: ${a.url}`} className="h-auto w-full" />
             </div>
             <p className="mt-3 break-all font-mono text-xs text-slate-500">{a.url}</p>
-            <button onClick={() => download(a.key)} className={btn("outline", "mt-3 print:hidden")}>
-              Download QR (SVG, for the poster)
-            </button>
           </Card>
         ))}
       </div>

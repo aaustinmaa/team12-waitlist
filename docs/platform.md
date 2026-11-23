@@ -69,4 +69,4 @@ Step by step: [supabase-setup.md](supabase-setup.md). In the hosted version the 
 
 ## QR codes
 
-`/demo/` shows a QR code for each app and can download them as SVG. The same files are in `docs/qr/` for the poster; regenerate them with `node web/scripts/make-qr.mjs [base-url]`. They point to the public GitHub Pages site, which only shows this version after it is merged into `main`.
+`/demo/` shows a QR code for each app. Copies are saved in `docs/qr/`; regenerate them with `node web/scripts/make-qr.mjs [base-url]`. They point to the public GitHub Pages site, which only shows this version after it is merged into `main`.
