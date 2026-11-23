@@ -1,11 +1,11 @@
-import { CheckCircle2, TriangleAlert } from "lucide-react";
+import { Activity, BookOpen, CheckCircle2, Scale, Target, TriangleAlert } from "lucide-react";
 import { Card, CardHeading } from "../../components/ui";
 import { judge } from "../../engine/backtest";
 import { GATE } from "../../engine/model";
 import { PRIORITIES } from "../../engine/types";
 import type { ClinicView } from "../../lib/api";
 import { fmtLong } from "../../lib/dates";
-import { PRIORITY_LABEL } from "../../components/ui";
+import { METRIC, PriorityBadge } from "../../components/ui";
 import { useClinicView } from "../../platform/store";
 import { NoDataYet } from "./ClinicShell";
 
@@ -57,7 +57,7 @@ function Body({ v }: { v: ClinicView }) {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Card>
-          <CardHeading>1 · What the clinic actually did</CardHeading>
+          <CardHeading icon={Activity}>1 · What the clinic actually did</CardHeading>
           <p className="mt-1 text-xs text-slate-500">Last {p.windowWeeks} weeks</p>
           <dl className="mt-3 space-y-2 text-sm">
             <Row k="First assessments a week" v={`${p.meanThroughput.toFixed(1)} on average`} />
@@ -76,7 +76,7 @@ function Body({ v }: { v: ClinicView }) {
         </Card>
 
         <Card>
-          <CardHeading>2 · Checked against the past</CardHeading>
+          <CardHeading icon={Target}>2 · Checked against the past</CardHeading>
           <p className="mt-1 text-xs text-slate-500">Every referral that became ready in the last year, estimated with only what was known that day</p>
           <dl className="mt-3 space-y-2 text-sm">
             <Row k="Past referrals checked" v={`${bt.resolved}`} />
@@ -97,7 +97,7 @@ function Body({ v }: { v: ClinicView }) {
         </Card>
 
         <Card>
-          <CardHeading>3 · Second opinion</CardHeading>
+          <CardHeading icon={Scale}>3 · Second opinion</CardHeading>
           <p className="mt-1 text-xs text-slate-500">Kaplan–Meier on the last two years: time from intake complete to first assessment; people still waiting are counted, not dropped</p>
           <table className="mt-3 w-full text-left text-sm">
             <thead className="text-xs text-slate-500">
@@ -108,14 +108,17 @@ function Body({ v }: { v: ClinicView }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {[...PRIORITIES].reverse().map((pr) => {
+              {/* Line order, same as the Waitlist page: urgent first. */}
+              {PRIORITIES.map((pr) => {
                 const s = m.survival[pr];
                 const n = v.newReferral[pr];
                 return (
                   <tr key={pr}>
-                    <td className="py-1.5 pr-3">{PRIORITY_LABEL[pr]}</td>
-                    <td className="py-1.5 pr-3 tabular-nums">{s.subjects < 10 ? "too few" : `${s.p10 ?? "–"}–${s.p90 ?? "> 2 yr"} wk`}</td>
-                    <td className="py-1.5 tabular-nums">{n ? `${n.lower}–${n.upper} wk` : "too long"}</td>
+                    <td className="py-2 pr-3">
+                      <PriorityBadge priority={pr} />
+                    </td>
+                    <td className={`py-2 pr-3 tabular-nums ${METRIC.wait.value}`}>{s.subjects < 10 ? "too few" : `${s.p10 ?? "–"}–${s.p90 ?? "> 2 yr"} wk`}</td>
+                    <td className={`py-2 font-medium tabular-nums ${METRIC.estimate.value}`}>{n ? `${n.lower}–${n.upper} wk` : "too long"}</td>
                   </tr>
                 );
               })}
@@ -128,7 +131,7 @@ function Body({ v }: { v: ClinicView }) {
       </div>
 
       <Card className="mt-6">
-        <CardHeading>How it works, in plain words</CardHeading>
+        <CardHeading icon={BookOpen}>How it works, in plain words</CardHeading>
         <ol className="mt-3 list-decimal space-y-2 ps-5 text-sm text-slate-700">
           <li>Each night the clinic's export is imported. We rebuild the line: who is ready, who is booked, on hold or still in intake, in the order the clinic sees them (priority, then referral date).</li>
           <li>For each family we replay the coming weeks hundreds of times. Each run draws real recent weeks from this clinic (busy and slow ones), lets higher-priority referrals and people finishing intake join ahead, and lets some families leave.</li>

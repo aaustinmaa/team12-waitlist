@@ -17,24 +17,29 @@ export function ThemeButton() {
       onClick={theme.next}
       title={`Colours: ${THEME[theme.choice].label}. Click to change.`}
       aria-label={`Colours: ${THEME[theme.choice].label}. Change colours`}
-      className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+      className="group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     >
-      <Icon className="size-4" aria-hidden />
+      <Icon className="size-4 transition-transform duration-300 group-hover:-rotate-12" aria-hidden />
       <span className="hidden lg:inline">{THEME[theme.choice].label}</span>
     </button>
   );
 }
 
 /** The product mark, shared by both apps. */
-export function Brand({ sub }: { sub: string }) {
+export function Brand({ sub, onDark = false }: { sub: string; /** on the staff sidebar's dark background */ onDark?: boolean }) {
   return (
-    <span className="flex items-center gap-2 font-semibold text-slate-900">
-      <span className="grid size-8 place-items-center rounded-lg bg-teal-700 text-sm font-bold text-white" aria-hidden>
+    <span className={`flex items-center gap-2.5 font-semibold ${onDark ? "text-nav-fg" : "text-slate-900"}`}>
+      <span
+        className={`grid size-8 shrink-0 place-items-center rounded-lg text-sm font-bold tracking-tight shadow-sm ring-1 ring-inset ${
+          onDark ? "bg-nav-accent text-nav ring-white/10" : "bg-teal-700 text-white ring-black/5 dark:bg-teal-300 dark:text-slate-950 dark:ring-white/10"
+        }`}
+        aria-hidden
+      >
         EB
       </span>
-      <span className="leading-tight">
+      <span className="min-w-0 leading-tight">
         Early Birds
-        <span className="block text-xs font-medium text-slate-500">{sub}</span>
+        <span className={`block truncate text-xs font-medium ${onDark ? "text-nav-fg/60" : "text-slate-500"}`}>{sub}</span>
       </span>
     </span>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Building2, FlaskConical, Sparkles, Users } from "lucide-react";
 import { btn, Card, CardHeading } from "../../components/ui";
 import { DEFAULT_GEMINI_MODEL } from "../../ingest/gemini";
 import { CAN, ROLE_LABEL, STAFF, clinicSetup } from "../../platform/clinics";
@@ -19,7 +20,7 @@ export function SettingsPage() {
       <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Settings</h1>
 
       <Card className="mt-6">
-        <CardHeading>Clinic</CardHeading>
+        <CardHeading icon={Building2}>Clinic</CardHeading>
         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs text-slate-500">Name</dt>
@@ -41,7 +42,7 @@ export function SettingsPage() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeading>Team</CardHeading>
+        <CardHeading icon={Users}>Team</CardHeading>
         <p className="mt-1 text-sm text-slate-600">Accounts are invite-only. Each person sees this clinic's data and nothing else.</p>
         <ul className="mt-3 divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
           {STAFF.filter((s) => s.clinicId === clinicId).map((s) => (
@@ -57,7 +58,7 @@ export function SettingsPage() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeading>AI column matching (Gemini)</CardHeading>
+        <CardHeading icon={Sparkles}>AI column matching (Gemini)</CardHeading>
         <p className="mt-1 text-sm text-slate-600">
           When an export's columns are new, AI reads a masked description of them (names, value types, a few examples with emails, phones and names removed) and proposes how they map. Staff confirm it. Rows are never sent.
         </p>
@@ -113,7 +114,7 @@ export function SettingsPage() {
 
       {isAdmin && (
         <Card className="mt-6">
-          <CardHeading>Demo data</CardHeading>
+          <CardHeading icon={FlaskConical}>Demo data</CardHeading>
           <p className="mt-1 text-sm text-slate-600">Put every clinic back to the start: Maple Grove with its Nov 13 export, the other two clinics empty, no staff changes, empty logs. Sign-ins and the AI setting stay.</p>
           {confirmReset ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">

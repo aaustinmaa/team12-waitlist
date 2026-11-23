@@ -22,7 +22,13 @@ const media = () => window.matchMedia("(prefers-color-scheme: dark)");
 
 function apply(choice: ThemeChoice) {
   const dark = choice === "dark" || (choice === "system" && media().matches);
-  document.documentElement.classList.toggle("dark", dark);
+  const root = document.documentElement;
+  if (root.classList.contains("dark") === dark) return;
+  const swap = () => root.classList.toggle("dark", dark);
+  // Cross-fade the whole page where the browser can, so the switch doesn't flash.
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "startViewTransition" in document) document.startViewTransition(swap);
+  else swap();
 }
 
 export function useTheme() {

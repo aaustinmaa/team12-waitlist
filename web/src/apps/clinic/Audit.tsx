@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Card } from "../../components/ui";
+import { Download, ScrollText, Search } from "lucide-react";
+import { Card, EmptyState } from "../../components/ui";
 import { downloadCsv, toCsv } from "../../lib/csv";
 import { btn } from "../../components/ui";
 import { useClinicId, usePlatform } from "../../platform/store";
@@ -23,17 +24,23 @@ export function AuditPage() {
           disabled={shown.length === 0}
           className={btn("outline")}
         >
-          Download
+          <Download className="size-4" aria-hidden /> Download
         </button>
       </div>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-500 sm:w-72" />
+      <label className="relative mt-4 block sm:w-72">
+        <span className="sr-only">Search the audit log</span>
+        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="w-full rounded-lg border border-slate-300 bg-white py-2 pe-3 ps-9 text-sm outline-none focus:border-teal-500" />
+      </label>
       <Card className="mt-4 !p-0">
         {shown.length === 0 ? (
-          <p className="p-6 text-sm text-slate-500">Nothing logged yet.</p>
+          <EmptyState icon={ScrollText} title={q ? "No entries match" : "Nothing logged yet"}>
+            {q ? `Nothing in the log mentions "${q}".` : "Sign-ins, views of a family's page, changes and imports will appear here."}
+          </EmptyState>
         ) : (
           <ul className="divide-y divide-slate-100 text-sm">
             {shown.slice(0, 300).map((e) => (
-              <li key={e.id} className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:gap-4">
+              <li key={e.id} className="flex flex-col gap-1 px-4 py-2.5 transition-colors duration-150 hover:bg-teal-50/50 sm:flex-row sm:gap-4">
                 <span className="w-40 shrink-0 text-xs text-slate-500">{new Date(e.at).toLocaleString("en-CA", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" })}</span>
                 <span className="w-56 shrink-0 truncate text-slate-700">{e.actor}</span>
                 <span className="flex-1 text-slate-900">

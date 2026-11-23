@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
+import { HeartHandshake } from "lucide-react";
 import { btn, Card } from "../../components/ui";
 import { DEMO_FAMILIES } from "../../platform/clinics";
 import { usePlatform } from "../../platform/store";
@@ -48,6 +49,9 @@ export function FamilySignIn() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
+      <span className="mb-5 grid size-12 place-items-center rounded-2xl bg-white text-teal-700 shadow-sm ring-1 ring-teal-100" aria-hidden>
+        <HeartHandshake className="size-6" />
+      </span>
       <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{ft.signInTitle}</h1>
       <p className="mt-2 text-slate-600">{ft.signInLead}</p>
       <Card className="mt-6">

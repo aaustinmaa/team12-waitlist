@@ -1,4 +1,4 @@
-import { ExternalLink, Library, Users } from "lucide-react";
+import { ExternalLink, LayoutGrid, Library, Sprout, Users } from "lucide-react";
 import { useI18n, type LangCode } from "../../lib/i18n";
 import type { Portal } from "../../lib/types";
 import { Card, CardHeading } from "../ui";
@@ -77,7 +77,7 @@ export function WhileYouWait({ id }: { id?: string }) {
   ];
   return (
     <Card id={id} tour="wait" className="scroll-mt-20">
-      <CardHeading id={id ? `${id}-heading` : undefined}>{t.wait.heading}</CardHeading>
+      <CardHeading icon={Sprout} id={id ? `${id}-heading` : undefined}>{t.wait.heading}</CardHeading>
       <p className="mt-2 text-sm text-slate-600">{t.wait.intro}</p>
 
       <h3 className="mt-4 text-xs font-medium text-slate-500">{t.wait.onlineTitle}</h3>
@@ -113,7 +113,7 @@ export function PortalsCard({ portals }: { portals: Portal[] }) {
   if (portals.length === 0) return null;
   return (
     <Card className="@container">
-      <CardHeading>{t.portals.heading}</CardHeading>
+      <CardHeading icon={LayoutGrid}>{t.portals.heading}</CardHeading>
       <p className="mt-2 text-sm text-slate-600">{t.portals.intro}</p>
       <ul className="mt-3 grid gap-2 @xl:grid-cols-3">
         {portals.map((p) => (
