@@ -1,5 +1,7 @@
 # Turning on the hosted version (Supabase)
 
+> **Status (Nov 23, 2026):** the project `early-birds` exists (Canada Central, ref `qmdgmlatmtlvntgxpzwo`). Steps 1, 2, 3 (function deployed), the security lock-down (`0002_lock_down_functions.sql`) and step 6 are done, and the app points at it. Still to do by hand: **step 3's Gemini secret, step 4 and step 5.**
+
 Until these steps are done, the apps run in browser-only demo mode. Each device keeps its own copy of the data. After them, a family's phone and a clinic's laptop see the same data, and sign-in uses real accounts.
 
 The code is already in place: `supabase/migrations/0001_platform.sql` (tables, security rules, demo clinics), `supabase/functions/propose-mapping` (AI column matching), and `web/src/platform/hosted.ts` (the app side).

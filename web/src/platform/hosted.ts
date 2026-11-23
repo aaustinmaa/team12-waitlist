@@ -17,8 +17,8 @@ import type { Role } from "./clinics";
 // Public settings of the team's Supabase project. Can be overridden with
 // VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (e.g. in web/.env.local).
 const PROJECT = {
-  url: "",
-  anonKey: "",
+  url: "https://qmdgmlatmtlvntgxpzwo.supabase.co",
+  anonKey: "sb_publishable_C6rU8Jrq4z6HFypTS_pqyg_eTC7XcaD",
 };
 
 const env = import.meta.env as Record<string, string | undefined>;
