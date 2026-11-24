@@ -2,12 +2,12 @@
 // wait a child referred today would face at each clinic, before choosing
 // where to refer. Clinic-wide totals only; no child's information.
 
-import { useMemo, useState, type ReactNode } from "react";
-import { CalendarClock, Info, Languages, Send, Stethoscope, Users } from "lucide-react";
+import { useId, useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { CalendarClock, ChevronDown, Clock, ExternalLink, Info, Languages, MapPin, Phone, Send, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { btn, Card, CardHeading, Chip, METRIC, type MetricKind } from "../../components/ui";
 import { fmtLong } from "../../lib/dates";
-import { directoryEntry, sortByWait, speaks, type DirectoryEntry } from "../../lib/referrer";
+import { directoryEntry, sortByWait, speaks, type DirectoryEntry, type WaitAnswer } from "../../lib/referrer";
 import type { ClinicianLanguage, Priority } from "../../lib/types";
 import { directoryViews } from "../../platform/directory";
 import { usePlatform } from "../../platform/store";
@@ -113,7 +113,7 @@ function Compare() {
       <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Compare waits before you refer</h1>
       <p className="mt-2 max-w-2xl text-slate-600">
         Preschool speech-language assessment. The estimate is for a child referred today, from each clinic's own records, and checked against how long its past
-        referrals really waited.
+        referrals really waited. Click a clinic for its contact details and waits at every priority.
       </p>
 
       <Card className="mt-6">
@@ -158,7 +158,7 @@ function Compare() {
       <ol className="mt-6 space-y-4" aria-label="Clinics, shortest expected wait first">
         {shown.map((e) => (
           <li key={e.clinicId}>
-            <ClinicCard e={e} />
+            <ClinicCard e={e} priority={priority} />
           </li>
         ))}
       </ol>
@@ -184,48 +184,139 @@ function Compare() {
   );
 }
 
-function ClinicCard({ e }: { e: DirectoryEntry }) {
+function ClinicCard({ e, priority }: { e: DirectoryEntry; priority: Priority }) {
+  const [open, setOpen] = useState(false);
+  const detailsId = useId();
+  // The whole card opens and closes on a click; the button at the bottom is the
+  // same control for keyboards and screen readers. Clicks on links inside the
+  // details, or ending a text selection, leave it as it is.
+  const onCardClick = (ev: MouseEvent) => {
+    if ((ev.target as HTMLElement).closest("a, button")) return;
+    if (window.getSelection()?.toString()) return;
+    setOpen((o) => !o);
+  };
+
   return (
-    <Card>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="text-lg font-bold text-slate-900">{e.name}</h2>
-          <p className="text-sm text-slate-600">
-            {e.city} · {e.serves}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {e.languages.map((l) => (
-              <Chip key={l} tone="slate">
-                {LANG_NAME[l]}
-              </Chip>
-            ))}
+    <Card className={`cursor-pointer transition-[border-color,box-shadow] hover:border-teal-300 hover:shadow-md ${open ? "border-teal-300" : ""}`}>
+      <div onClick={onCardClick}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-slate-900">{e.name}</h2>
+            <p className="text-sm text-slate-600">
+              {e.city} · {e.serves}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {e.languages.map((l) => (
+                <Chip key={l} tone="slate">
+                  {LANG_NAME[l]}
+                </Chip>
+              ))}
+            </div>
           </div>
+          <Wait e={e} />
         </div>
-        <Wait e={e} />
-      </div>
 
-      <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-4">
-        <Fact kind="count" icon={<Users className="size-4" aria-hidden />} label="Waiting now" value={`${e.waitingNow} children`} />
-        <Fact kind="count" icon={<CalendarClock className="size-4" aria-hidden />} label="First assessments" value={`${e.perWeek} a week`} />
-        <Fact kind="wait" icon={<Info className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
-        <Fact
-          kind={e.coverage === null ? "count" : "quality"}
-          icon={<Info className="size-4" aria-hidden />}
-          label="Past estimates held"
-          value={e.coverage === null ? "Not checked yet" : `${Math.round(e.coverage * 100)}% of the time`}
-        />
-      </dl>
+        <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-4">
+          <Fact kind="count" icon={<Users className="size-4" aria-hidden />} label="Waiting now" value={`${e.waitingNow} children`} />
+          <Fact kind="count" icon={<CalendarClock className="size-4" aria-hidden />} label="First assessments" value={`${e.perWeek} a week`} />
+          <Fact kind="wait" icon={<Info className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
+          <Fact
+            kind={e.coverage === null ? "count" : "quality"}
+            icon={<Info className="size-4" aria-hidden />}
+            label="Past estimates held"
+            value={e.coverage === null ? "Not checked yet" : `${Math.round(e.coverage * 100)}% of the time`}
+          />
+        </dl>
 
-      <div className="mt-4 flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex items-center gap-1.5 text-slate-700">
-          <Send className="size-4 shrink-0 text-slate-500" aria-hidden />
-          <span>
-            <span className="font-medium">How to refer:</span> {e.howToRefer}
-          </span>
-        </p>
-        <p className="text-xs text-slate-500">Clinic data from {fmtLong(e.asOf)}</p>
+        {open && <Details id={detailsId} e={e} priority={priority} />}
+
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+          <p className="text-xs text-slate-500">Clinic data from {fmtLong(e.asOf)}</p>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls={detailsId}
+            className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+          >
+            {open ? "Hide details" : "Details and how to refer"}
+            <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+          </button>
+        </div>
       </div>
     </Card>
+  );
+}
+
+const PRIORITY_LABEL: Record<Priority, string> = { standard: "Standard", high: "High", urgent: "Urgent" };
+
+const waitText = (w: WaitAnswer) =>
+  w.kind === "range" ? `${w.lower}–${w.upper} weeks` : w.kind === "too_long" ? "Longer than we can estimate" : "No estimate yet";
+
+/** What opens under a clinic: the wait at every priority, how to reach and refer to it, and how far its numbers can be trusted. */
+function Details({ id, e, priority }: { id: string; e: DirectoryEntry; priority: Priority }) {
+  return (
+    <div id={id} className="mt-4 grid animate-page-in gap-4 border-t border-slate-100 pt-4 text-sm md:grid-cols-2">
+      <section>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Expected wait by priority</h3>
+        <table className="mt-2 w-full">
+          <tbody>
+            {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
+              <tr key={p} className={`border-b border-slate-100 last:border-0 ${p === priority ? "font-semibold" : ""}`}>
+                <th scope="row" className="py-1.5 text-start font-medium text-slate-700">
+                  {PRIORITY_LABEL[p]}
+                  {p === priority && <span className="ms-1.5 text-xs font-normal text-slate-500">(selected)</span>}
+                </th>
+                <td className={`py-1.5 text-end tabular-nums ${e.waits[p].kind === "range" ? METRIC.estimate.value : "text-slate-600"}`}>{waitText(e.waits[p])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-500">
+          <ShieldCheck className="mt-px size-3.5 shrink-0" aria-hidden />
+          {e.coverage === null
+            ? `Checked against ${e.checkedAgainst} past referral${e.checkedAgainst === 1 ? "" : "s"} so far, not enough to show an estimate.`
+            : `Checked against ${e.checkedAgainst} past referrals: the real wait fell inside the range ${Math.round(e.coverage * 100)}% of the time.`}
+        </p>
+      </section>
+
+      <section>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Contact and referral</h3>
+        <ul className="mt-2 space-y-2 text-slate-700">
+          <Line icon={Send}>
+            <span className="font-medium">How to refer:</span> {e.howToRefer}
+          </Line>
+          <Line icon={Phone}>
+            <a href={`tel:${e.phone.replace(/[^0-9+]/g, "")}`} className="font-medium text-teal-700 underline-offset-2 hover:underline">
+              {e.phone}
+            </a>{" "}
+            <span className="text-slate-500">(intake)</span>
+          </Line>
+          <Line icon={Clock}>{e.hours}</Line>
+          <Line icon={MapPin}>{e.address}</Line>
+          <Line icon={Users}>{e.service}</Line>
+        </ul>
+        {e.portals.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {e.portals.map((pt) => (
+              <a key={pt.id} href={pt.url} target="_blank" rel="noreferrer" className={btn("outline", "py-1.5 text-sm")}>
+                Refer through {pt.name}
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Line({ icon: Icon, children }: { icon: typeof Send; children: ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <Icon className="mt-0.5 size-4 shrink-0 text-slate-500" aria-hidden />
+      <span>{children}</span>
+    </li>
   );
 }
 

@@ -7,7 +7,7 @@
 
 import type { ReferrerProfile } from "../platform/clinics";
 import { intakeTiming, listQueue, type ClinicView } from "./api";
-import type { ClinicianLanguage, Priority } from "./types";
+import type { ClinicianLanguage, Portal, Priority } from "./types";
 
 export type WaitAnswer =
   /** weeks from referral to first assessment, for a referral made today */
@@ -26,9 +26,16 @@ export interface DirectoryEntry {
   languages: ClinicianLanguage[];
   howToRefer: string;
   phone: string;
+  address: string;
+  hours: string;
+  /** online referral systems the clinic takes referrals through */
+  portals: Portal[];
   /** the day the clinic's latest data describes */
   asOf: string;
+  /** the wait at the priority asked about */
   wait: WaitAnswer;
+  /** the wait at every priority, for the card's details */
+  waits: Record<Priority, WaitAnswer>;
   /** referrals still waiting for a first assessment that isn't booked yet */
   waitingNow: number;
   /** first assessments a week, recently */
@@ -37,15 +44,23 @@ export interface DirectoryEntry {
   intakeDays: number;
   /** share of past families whose real wait fell inside their range; null when not shown */
   coverage: number | null;
+  /** how many past referrals (with a known real wait) the estimates were checked against */
+  checkedAgainst: number;
 }
 
-export function directoryEntry(v: ClinicView, profile: ReferrerProfile, priority: Priority): DirectoryEntry {
+const PRIORITY_ORDER: Priority[] = ["standard", "high", "urgent"];
+
+function waitAt(v: ClinicView, priority: Priority): WaitAnswer {
   const range = v.newReferral[priority];
-  const wait: WaitAnswer = !v.model.gate.familyVisible
+  return !v.model.gate.familyVisible
     ? { kind: "not_enough_history" }
     : range
       ? { kind: "range", lower: range.lower, upper: range.upper }
       : { kind: "too_long" };
+}
+
+export function directoryEntry(v: ClinicView, profile: ReferrerProfile, priority: Priority): DirectoryEntry {
+  const waits = Object.fromEntries(PRIORITY_ORDER.map((p) => [p, waitAt(v, p)])) as Record<Priority, WaitAnswer>;
   return {
     clinicId: v.id,
     name: v.info.name,
@@ -55,12 +70,17 @@ export function directoryEntry(v: ClinicView, profile: ReferrerProfile, priority
     languages: profile.languages,
     howToRefer: profile.howToRefer,
     phone: v.info.phone,
+    address: v.info.address,
+    hours: v.info.hours,
+    portals: v.info.portals,
     asOf: v.asOf,
-    wait,
+    wait: waits[priority],
+    waits,
     waitingNow: listQueue(v).filter((r) => r.status !== "assessment_booked").length,
     perWeek: Math.round(v.model.params.meanThroughput * 10) / 10,
     intakeDays: intakeTiming(v).typical_days,
     coverage: v.model.gate.familyVisible ? v.model.backtest.coverage : null,
+    checkedAgainst: v.model.backtest.resolved,
   };
 }
 

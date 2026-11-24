@@ -1,27 +1,35 @@
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme, type ThemeChoice } from "../lib/theme";
 
-const THEME: Record<ThemeChoice, { icon: typeof Sun; label: string }> = {
-  system: { icon: Monitor, label: "Same as device" },
-  light: { icon: Sun, label: "Light" },
-  dark: { icon: Moon, label: "Dark" },
-};
+const OPTIONS: { value: ThemeChoice; icon: typeof Sun; label: string }[] = [
+  { value: "light", icon: Sun, label: "Light" },
+  { value: "dark", icon: Moon, label: "Dark" },
+];
 
-/** Light, dark, or follow the device. */
+/** Light or dark: two buttons side by side, the current one filled in. */
 export function ThemeButton() {
   const theme = useTheme();
-  const Icon = THEME[theme.choice].icon;
   return (
-    <button
-      type="button"
-      onClick={theme.next}
-      title={`Colours: ${THEME[theme.choice].label}. Click to change.`}
-      aria-label={`Colours: ${THEME[theme.choice].label}. Change colours`}
-      className="group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-    >
-      <Icon className="size-4 transition-transform duration-300 group-hover:-rotate-12" aria-hidden />
-      <span className="hidden lg:inline">{THEME[theme.choice].label}</span>
-    </button>
+    <div role="group" aria-label="Colours" className="flex shrink-0 items-center rounded-lg bg-slate-100 p-0.5">
+      {OPTIONS.map(({ value, icon: Icon, label }) => {
+        const on = theme.choice === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => theme.set(value)}
+            aria-pressed={on}
+            title={`${label} mode`}
+            className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition-colors ${
+              on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            <Icon className="size-4" aria-hidden />
+            <span className="hidden sm:inline">{label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

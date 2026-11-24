@@ -1,12 +1,11 @@
-// Light, dark, or follow the device. The choice is a per-browser preference.
-// index.html applies the saved choice before the first paint, so the page
-// never flashes the wrong colours.
+// Light or dark. The choice is a per-browser preference; before anyone picks,
+// the page starts in whichever the device uses. index.html applies the same
+// rule before the first paint, so the page never flashes the wrong colours.
 
 import { useEffect, useState } from "react";
 
-export type ThemeChoice = "system" | "light" | "dark";
+export type ThemeChoice = "light" | "dark";
 export const THEME_KEY = "team12-theme";
-const ORDER: ThemeChoice[] = ["system", "light", "dark"];
 
 function saved(): ThemeChoice {
   try {
@@ -15,13 +14,11 @@ function saved(): ThemeChoice {
   } catch {
     /* storage blocked */
   }
-  return "system";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-const media = () => window.matchMedia("(prefers-color-scheme: dark)");
-
 function apply(choice: ThemeChoice) {
-  const dark = choice === "dark" || (choice === "system" && media().matches);
+  const dark = choice === "dark";
   const root = document.documentElement;
   if (root.classList.contains("dark") === dark) return;
   const swap = () => root.classList.toggle("dark", dark);
@@ -34,14 +31,7 @@ function apply(choice: ThemeChoice) {
 export function useTheme() {
   const [choice, setChoice] = useState<ThemeChoice>(saved);
 
-  useEffect(() => {
-    apply(choice);
-    if (choice !== "system") return;
-    const m = media();
-    const onChange = () => apply("system");
-    m.addEventListener("change", onChange);
-    return () => m.removeEventListener("change", onChange);
-  }, [choice]);
+  useEffect(() => apply(choice), [choice]);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => e.key === THEME_KEY && setChoice(saved());
@@ -52,12 +42,11 @@ export function useTheme() {
   const set = (c: ThemeChoice) => {
     setChoice(c);
     try {
-      if (c === "system") localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, c);
+      localStorage.setItem(THEME_KEY, c);
     } catch {
       /* storage blocked: applies to this visit only */
     }
   };
 
-  return { choice, set, next: () => set(ORDER[(ORDER.indexOf(choice) + 1) % ORDER.length]) };
+  return { choice, set };
 }
