@@ -1,4 +1,4 @@
--- Early Birds: hosted schema (Supabase / Postgres). Create the project in
+-- ClearWait (Early Birds, Team 12): hosted schema (Supabase / Postgres). Create the project in
 -- Canada (Central).
 --
 -- Who can see what is enforced here, by row-level security, not by the app:

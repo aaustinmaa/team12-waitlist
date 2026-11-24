@@ -7,7 +7,7 @@ import mapleNov13 from "../../../data/samples/maple-grove/clinicflow-export-2026
 import mapleNov20 from "../../../data/samples/maple-grove/clinicflow-export-2026-11-20.csv?raw";
 import lakeshoreNov20 from "../../../data/samples/lakeshore/theratrack-events-2026-11-20.csv?raw";
 import riviereNov20 from "../../../data/samples/riviere-est/dossierplus-2026-11-20.csv?raw";
-import type { Clinic } from "../lib/types";
+import type { Clinic, ClinicianLanguage } from "../lib/types";
 
 export type Role = "admin" | "intake" | "manager";
 
@@ -38,11 +38,23 @@ export interface SampleFile {
   note: string;
 }
 
+/** What the clinic lists for referrers (family doctors, paediatricians) who are choosing where to refer. */
+export interface ReferrerProfile {
+  city: string;
+  /** who the clinic takes referrals for */
+  serves: string;
+  /** languages families can be seen in */
+  languages: ClinicianLanguage[];
+  /** how a referrer sends a referral */
+  howToRefer: string;
+}
+
 export interface ClinicSetup {
   id: string;
   /** the clinic system it exports from, for the Data page */
   system: string;
   info: Clinic;
+  referrer: ReferrerProfile;
   samples: SampleFile[];
   /**
    * Demo stand-in for a nightly automatic export: each "sync" picks up the
@@ -77,6 +89,12 @@ export const CLINICS: ClinicSetup[] = [
       ],
       portals: PORTALS,
     },
+    referrer: {
+      city: "Waterloo",
+      serves: "Children 0–5, Waterloo Region",
+      languages: ["en", "fr", "cmn", "yue"],
+      howToRefer: "Ocean eReferral, or fax 519-555-0143",
+    },
     samples: [
       { name: "clinicflow-export-2026-11-13.csv", text: mapleNov13, note: "Export from Nov 13" },
       { name: "clinicflow-export-2026-11-20.csv", text: mapleNov20, note: "Export from Nov 20" },
@@ -101,6 +119,12 @@ export const CLINICS: ClinicSetup[] = [
       clinicians: [{ id: "Sam Whitfield", name: "Sam Whitfield", role: "slp", registration: "CASLPO #F5678", languages: ["en"] }],
       portals: PORTALS,
     },
+    referrer: {
+      city: "Goderich",
+      serves: "Children 0–5, Huron and Perth counties",
+      languages: ["en"],
+      howToRefer: "Ocean eReferral, or call 519-555-0177",
+    },
     samples: [{ name: "theratrack-events-2026-11-20.csv", text: lakeshoreNov20, note: "Event log export, Nov 20" }],
     syncFeed: [],
   },
@@ -117,6 +141,12 @@ export const CLINICS: ClinicSetup[] = [
       timezone: "America/Toronto",
       clinicians: [],
       portals: PORTALS,
+    },
+    referrer: {
+      city: "Ottawa",
+      serves: "Children 0–5, eastern Ottawa",
+      languages: ["fr", "en"],
+      howToRefer: "Ocean eReferral, or fax 613-555-0189",
     },
     samples: [{ name: "dossierplus-2026-11-20.csv", text: riviereNov20, note: "Export du 20 nov. / Nov 20 export" }],
     syncFeed: [],

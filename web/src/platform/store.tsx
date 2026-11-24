@@ -89,7 +89,7 @@ interface PlatformState {
   sync?: { loading: boolean; error: string | null };
 }
 
-const blankOps = (): DemoState => ({ extraSlots: 0, intakeCompleted: [], priority: {}, notifyPrefs: {}, notices: [], told: {}, toursSeen: [], contacts: {}, priorityLog: [] });
+export const blankOps = (): DemoState => ({ extraSlots: 0, intakeCompleted: [], priority: {}, notifyPrefs: {}, notices: [], told: {}, toursSeen: [], contacts: {}, priorityLog: [] });
 
 let seq = 0;
 const uid = () => `${Date.now().toString(36)}-${(seq++).toString(36)}`;

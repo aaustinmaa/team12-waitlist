@@ -1,8 +1,8 @@
-# Early Birds Waitlist
+# ClearWait
 
-Early Birds is CS 497 Thursday Team 12. It gives families waiting for non-urgent children's developmental services (speech-language first) a wait range they can trust. Each range is learned from the clinic's own data and checked against what really happened.
+ClearWait is the technical solution of Early Birds, CS 497 Thursday Team 12. It gives families waiting for non-urgent children's developmental services (speech-language first) a wait range they can trust. Each range is learned from the clinic's own data and checked against what really happened.
 
-Prototype V.1 is two apps on one engine: a **family app**, where families sign in with a one-time code, and a **clinic portal** for staff, where each clinic imports exports from its own system. See [docs/platform.md](docs/platform.md) for how it fits together.
+Prototype V.1 is three apps on one engine: a **family app**, where families sign in with a one-time code; a **clinic portal** for staff, where each clinic imports exports from its own system; and a **referrer page**, where family doctors compare clinics' expected waits before they refer. See [docs/platform.md](docs/platform.md) for how it fits together.
 
 | Path | What belongs here |
 | --- | --- |
@@ -15,7 +15,7 @@ Prototype V.1 is two apps on one engine: a **family app**, where families sign i
 
 ## See the prototype
 
-**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer. The two apps have separate addresses: the family app at `/` and the clinic portal at `/clinic/`. `/demo/` has both QR codes, the demo accounts and a walkthrough. Every referral is synthetic.
+**[Open the live demo](https://aaustinmaa.github.io/team12-waitlist/)**. It works on a phone or a computer. The apps have separate addresses: the family app at `/`, the clinic portal at `/clinic/` and the referrer page at `/refer/`. `/demo/` has the QR codes, the demo accounts and a walkthrough. Every referral is synthetic.
 
 ## Start here
 
@@ -39,7 +39,8 @@ Open the address Vite prints. `npm test` runs the engine, import and app tests o
 | --- | --- | --- |
 | Family app | `/` | Parents and guardians, phone first. Sign in with a one-time code. |
 | Clinic portal | `/clinic/` | Clinic staff: waitlist, reports, data imports, how estimates are made, settings, audit log |
-| Demo guide | `/demo/` | Demo Day: both QR codes, accounts and a walkthrough. Not linked from either app. |
+| Referrer page | `/refer/` | Family doctors and other referrers: each clinic's expected wait for a child referred today, before choosing where to refer |
+| Demo guide | `/demo/` | Demo Day: QR codes, accounts and a walkthrough. Not linked from the apps. |
 
 To regenerate the sample exports: `node data/samples/generate.mjs`.
 

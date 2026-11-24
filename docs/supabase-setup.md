@@ -37,10 +37,10 @@ The family app asks for a 6-digit code, not a link.
 
 1. Left menu → **Authentication** → **Email Templates**.
 2. Open **Magic Link** and set:
-   - Subject: `Your Early Birds sign-in code`
+   - Subject: `Your ClearWait sign-in code`
    - Body:
      ```html
-     <h2>Your Early Birds sign-in code</h2>
+     <h2>Your ClearWait sign-in code</h2>
      <p>Enter this code in the app: <strong style="font-size:24px">{{ .Token }}</strong></p>
      <p>It works for one hour. If you didn't ask for it, you can ignore this email.</p>
      ```

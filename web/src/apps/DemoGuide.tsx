@@ -42,6 +42,15 @@ const STEPS = [
       "Audit log (admin) shows who viewed or changed what.",
     ],
   },
+  {
+    title: "5 · A family doctor chooses where to refer",
+    who: "Referrer page · one-tap demo sign-in",
+    steps: [
+      "See every clinic's expected wait for a child referred today, shortest first, worked out from each clinic's own records.",
+      "Switch the priority to Urgent, or filter by the family's language (French hides Lakeshore).",
+      "Lakeshore shows \"No estimate yet\" in neutral grey: too little history to check, which says nothing about its quality.",
+    ],
+  },
 ];
 
 /** Where the QR codes point. The public site by default; a laptop's address on the same Wi-Fi works too (npm run dev -- --host). */
@@ -51,10 +60,11 @@ function QrCards() {
   const apps = [
     { key: "family", title: "Family app", sub: "Scan to check a child's referral", url: root },
     { key: "clinic", title: "Clinic portal", sub: "Scan to sign in as clinic staff", url: `${root}clinic/` },
+    { key: "refer", title: "Referrer page", sub: "Scan to compare clinic waits", url: `${root}refer/` },
   ];
   return (
     <section className="mt-10">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         {apps.map((a) => (
           <Card key={a.key} className="flex flex-col items-center text-center">
             <h2 className="text-xl font-bold text-slate-900">{a.title}</h2>
@@ -94,10 +104,10 @@ export function DemoGuide() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <p className="text-sm font-semibold text-teal-700">CS 497 · ClearWait · Prototype V.1</p>
+        <p className="text-sm font-semibold text-teal-700">CS 497 · Team 12 (Early Birds) · ClearWait prototype V.1</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Wait-time estimates for children's therapy waitlists, learned from each clinic's own data</h1>
         <p className="mt-3 max-w-3xl text-slate-600">
-          Two separate apps. Families sign in with a one-time code and see every referral linked to them. Clinic staff sign in to their own clinic's portal, bring in exports from whatever system they use, and see how the estimates were made and checked.
+          Three separate apps. Families sign in with a one-time code and see every referral linked to them. Clinic staff sign in to their own clinic's portal, bring in exports from whatever system they use, and see how the estimates were made and checked. Family doctors and other referrers compare clinics' expected waits before they refer.
         </p>
         <div className="mt-6 flex flex-wrap gap-3 print:hidden">
           <a href="../" className={btn("primary")}>
@@ -105,6 +115,9 @@ export function DemoGuide() {
           </a>
           <a href="../clinic/" className={btn("dark")}>
             Open the clinic portal
+          </a>
+          <a href="../refer/" className={btn("outline")}>
+            Open the referrer page
           </a>
         </div>
 

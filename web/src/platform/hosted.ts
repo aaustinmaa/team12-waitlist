@@ -29,7 +29,7 @@ const forcedLocal = typeof location !== "undefined" && /[?&]local\b/.test(locati
 /** True when the apps run against Supabase rather than browser storage. */
 export const HOSTED = !!(URL_ && KEY) && !forcedLocal && env.MODE !== "test";
 
-export type AppKind = "family" | "clinic" | "demo";
+export type AppKind = "family" | "clinic" | "demo" | "refer";
 let appKind: AppKind = "family";
 let client: SupabaseClient | null = null;
 
