@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode, type RefObject } from "react";
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, ChevronsUp, ChevronUp, Minus, type LucideIcon } from "lucide-react";
 import type { Priority, ReferralStatus, UnavailableReason } from "../lib/types";
 
@@ -328,4 +328,51 @@ export function jumpTo(id: string) {
   if (!el) return;
   el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   el.querySelector<HTMLElement>("h2[tabindex]")?.focus({ preventScroll: true });
+}
+
+/** True once the page (or an inner scroll pane) has moved off the top, so sticky headers can show a crisp shadow. */
+export function useScrolled(ref?: RefObject<HTMLElement | null>) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const el = ref?.current ?? null;
+    const update = () => setScrolled((el ? el.scrollTop : 0) > 4 || window.scrollY > 4);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    el?.addEventListener("scroll", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+      el?.removeEventListener("scroll", update);
+    };
+  }, [ref]);
+  return scrolled;
+}
+
+/** Prevents the page underneath from scrolling while a dialog or drawer is open. */
+export function useScrollLock(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [active]);
+}
+
+/** Keyboard-only jump over the header straight to main content (used on every portal). */
+export function SkipLink({ target = "main-content", label = "Skip to main content" }: { target?: string; label?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const el = document.getElementById(target);
+        if (!el) return;
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+      }}
+      className="sr-only fixed start-3 top-3 z-[60] rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only dark:bg-teal-300 dark:text-slate-950"
+    >
+      {label}
+    </button>
+  );
 }

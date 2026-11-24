@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PUBLIC_BASE } from "../boot";
 import { QrCode } from "../components/QrCode";
 import { Brand, DemoFooter, ThemeButton } from "../components/ThemeButton";
-import { btn, Card } from "../components/ui";
+import { btn, Card, SkipLink, useScrolled } from "../components/ui";
 import { CLINICS, DEMO_FAMILIES, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF } from "../platform/clinics";
 
 const STEPS = [
@@ -93,17 +93,23 @@ function QrCards() {
 }
 
 export function DemoGuide() {
+  const scrolled = useScrolled();
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-6">
+      <SkipLink />
+      <header
+        className={`sticky top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+          scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
+        }`}
+      >
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <Brand sub="Demo guide" />
           <div className="ms-auto">
             <ThemeButton />
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 outline-none sm:px-6 sm:py-12">
         <p className="text-sm font-semibold text-teal-700">CS 497 · Team 12 (Early Birds) · ClearWait prototype V.1</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Wait-time estimates for children's therapy waitlists, learned from each clinic's own data</h1>
         <p className="mt-3 max-w-3xl text-slate-600">

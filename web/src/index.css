@@ -102,8 +102,11 @@
 
   /* Motion: one easing and two durations everywhere. */
   --ease-calm: cubic-bezier(0.2, 0.7, 0.25, 1);
-  --animate-page-in: page-in 260ms var(--ease-calm) backwards;
-  --animate-fade-in: fade-in 200ms var(--ease-calm) both;
+  --animate-page-in: page-in 240ms var(--ease-calm) backwards;
+  --animate-fade-in: fade-in 180ms var(--ease-calm) both;
+  --animate-backdrop-in: page-in 180ms var(--ease-calm) both;
+  --animate-dialog-in: dialog-in 200ms var(--ease-calm) both;
+  --animate-drawer-in: drawer-in 240ms var(--ease-calm) both;
 
   /* Opacity only: a transform here would trap the tour's and toasts' fixed positioning. */
   @keyframes page-in {
@@ -118,6 +121,26 @@
     from {
       opacity: 0;
       transform: translateY(-2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes drawer-in {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
     }
     to {
       opacity: 1;
@@ -243,11 +266,42 @@
   --chart-orange: oklch(74% 0.1 62);
 }
 
+html {
+  background-color: var(--color-slate-50);
+  /* Stop trackpad/touch rubber-band overscroll from pulling sticky headers off the viewport edge or sliding sideways. */
+  overscroll-behavior: none;
+  overflow-x: clip;
+}
+
 body {
   @apply bg-slate-50 text-slate-800 antialiased;
+  overscroll-behavior: none;
+  overflow-x: clip;
   /* Inter's clearer 1/l/I. (Tabular figures go on tables and stat figures only: in Inter they also widen hyphens.) */
   font-feature-settings: "cv11", "ss01", "cv05";
   text-rendering: optimizeLegibility;
+}
+
+/* Subtle, calm scrollbars that follow light and dark mode. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-slate-400) 45%, transparent) transparent;
+}
+
+/* Hide horizontal scrollbar on touch/pill strips while keeping scrolling intact. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Range slider polish (used on the waitlist capacity scenario). */
+input[type="range"] {
+  cursor: pointer;
+}
+input[type="range"]:disabled {
+  cursor: not-allowed;
 }
 
 /* In the base layer so a heading's own tracking-* class still wins. */
@@ -292,12 +346,13 @@ body {
     cursor: pointer;
   }
 
-  /* Text fields: a soft halo in the brand colour while typing. */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
-  select:focus,
-  textarea:focus {
+  /* Text fields: a soft halo in the brand colour while typing (suppress duplicate browser focus-visible outline). */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.no-field-focus):focus,
+  select:not(.no-field-focus):focus,
+  textarea:not(.no-field-focus):focus {
     border-color: var(--color-teal-500);
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-teal-500) 22%, transparent);
+    outline: none;
   }
 
   /* Links underline in a lighter tint and settle on the full colour on hover. */
@@ -320,10 +375,15 @@ body {
   }
 }
 
-/* Visible keyboard focus everywhere. */
-:focus-visible {
+/* Visible keyboard focus everywhere except fields that already draw their own teal focus halo. */
+:focus-visible:not(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.no-field-focus)):not(select:not(.no-field-focus)):not(textarea:not(.no-field-focus)) {
   outline: 2px solid var(--color-teal-500);
   outline-offset: 2px;
+}
+.no-field-focus:focus,
+.no-field-focus:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 details > summary {
@@ -356,7 +416,10 @@ details > summary::-webkit-details-marker {
   :root.dark {
     color-scheme: light;
   }
+  html,
   body {
+    height: auto !important;
+    overflow: visible !important;
     background: white;
   }
   @page {

@@ -41,6 +41,7 @@ import {
   STATUS_TONE,
   StatCard,
   SuccessNote,
+  useScrollLock,
   weeksLabel,
 } from "../../components/ui";
 import { downloadCsv, toCsv } from "../../lib/csv";
@@ -91,9 +92,10 @@ function WaitlistBody({ v }: { v: ClinicView }) {
 
   const counts = Object.fromEntries(FILTERS.map((f) => [f.key, rows.filter(f.test).length])) as Record<Filter, number>;
   const active = FILTERS.find((f) => f.key === filter)!;
+  const q = query.trim().toLowerCase();
   const shown = rows
     .filter(active.test)
-    .filter((r) => r.id.toLowerCase().includes(query.trim().toLowerCase()))
+    .filter((r) => !q || `${r.id} ${r.priority} ${r.referral_source} ${r.age_group}`.toLowerCase().includes(q))
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999) || a.received_on.localeCompare(b.received_on));
   const openPreview = (id: string) => {
     setPreviewId(id);
@@ -102,6 +104,7 @@ function WaitlistBody({ v }: { v: ClinicView }) {
   const actions = { onPreview: openPreview, onComplete: completeIntake, canEdit };
 
   const preview = previewId ? getFamilyReferral(v, previewId) : null;
+  useScrollLock(!!preview || !!pending);
 
   useEffect(() => {
     if (!previewId) return;
@@ -184,21 +187,34 @@ function WaitlistBody({ v }: { v: ClinicView }) {
               <p className="text-sm text-slate-500">Ordered by priority, then referral date. Clinical staff set the priority; a change moves the line and every estimate behind it.</p>
             </div>
           </div>
-          <label className="relative block min-w-0 md:w-64">
-            <span className="sr-only">Search referral ID</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+          <label className="relative block min-w-0 md:w-72">
+            <span className="sr-only">Search waitlist</span>
+            <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
             <input
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setSaved(null);
               }}
-              placeholder="Search referral ID"
-              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-500"
+              placeholder="Search ID, source, priority…"
+              className="w-full rounded-lg border border-slate-300 bg-white py-2 pe-9 ps-9 text-sm text-slate-900 outline-none focus:border-teal-500"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setSaved(null);
+                }}
+                aria-label="Clear search"
+                className="absolute end-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            )}
           </label>
         </div>
-        <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 py-2 sm:px-5" role="tablist" aria-label="Filter waitlist">
+        <div className="no-scrollbar flex gap-1 overflow-x-auto overscroll-x-contain border-b border-slate-200 px-4 py-2 sm:px-5" role="tablist" aria-label="Filter waitlist">
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -241,19 +257,19 @@ function WaitlistBody({ v }: { v: ClinicView }) {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto overscroll-x-contain md:block">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-[0.6875rem] uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="px-5 py-3 font-semibold">#</th>
-                <th className="px-3 py-3 font-medium">Referral</th>
-                <th className="px-3 py-3 font-medium">Received</th>
-                <th className="px-3 py-3 font-medium" title="Calendar time since the referral was received. Time on hold is shown underneath and is part of this total.">Waiting</th>
-                <th className="hidden px-3 py-3 font-medium xl:table-cell">Age · Source</th>
-                <th className="px-3 py-3 font-medium">Status</th>
-                <th className="px-3 py-3 font-medium">Priority</th>
-                <th className="px-3 py-3 font-medium">Family sees</th>
-                <th className="px-5 py-3 text-right font-medium">Actions</th>
+              <tr className="whitespace-nowrap">
+                <th className="px-4 py-3 font-semibold xl:px-5">#</th>
+                <th className="px-2.5 py-3 font-medium xl:px-3">Referral</th>
+                <th className="hidden px-3 py-3 font-medium xl:table-cell">Received</th>
+                <th className="px-2.5 py-3 font-medium xl:px-3" title="Calendar time since the referral was received. Time on hold is shown underneath and is part of this total.">Waiting</th>
+                <th className="hidden px-3 py-3 font-medium 2xl:table-cell">Age · Source</th>
+                <th className="px-2.5 py-3 font-medium xl:px-3">Status</th>
+                <th className="px-2.5 py-3 font-medium xl:px-3">Priority</th>
+                <th className="px-2.5 py-3 font-medium xl:px-3">Family sees</th>
+                <th className="px-4 py-3 text-right font-medium xl:px-5">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -262,18 +278,18 @@ function WaitlistBody({ v }: { v: ClinicView }) {
                   key={r.id}
                   className={`transition-colors duration-150 ${r.needs_review ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-teal-50/50"} ${ROW_EDGE[r.priority]}`}
                 >
-                  <td className="px-5 py-3 text-slate-500">{r.position ?? "–"}</td>
-                  <td className="whitespace-nowrap px-3 py-3 font-mono font-medium text-slate-900">{r.id}</td>
-                  <td className="whitespace-nowrap px-3 py-3 text-slate-700">{fmtShort(r.received_on)}</td>
-                  <td className="whitespace-nowrap px-3 py-3 font-medium text-teal-800">
+                  <td className="px-4 py-3 text-slate-500 xl:px-5">{r.position ?? "–"}</td>
+                  <td className="whitespace-nowrap px-2.5 py-3 font-mono font-medium text-slate-900 xl:px-3">{r.id}</td>
+                  <td className="hidden whitespace-nowrap px-3 py-3 text-slate-700 xl:table-cell">{fmtShort(r.received_on)}</td>
+                  <td className="whitespace-nowrap px-2.5 py-3 font-medium text-teal-800 xl:px-3">
                     {weeksLabel(r.days_waiting)}
                     {r.days_on_hold > 0 && <span className="block text-xs text-amber-800">{weeksLabel(r.days_on_hold)} on hold</span>}
                   </td>
-                  <td className="hidden px-3 py-3 text-slate-600 xl:table-cell"><span className="whitespace-nowrap">{r.age_group}</span><span className="block text-xs text-slate-400">{r.referral_source}</span></td>
-                  <td className="px-3 py-3"><StatusCell v={v} r={r} /></td>
-                  <td className="px-3 py-3"><PriorityCell r={r} onChange={askPriority} canEdit={canEdit} /></td>
-                  <td className="px-3 py-3"><EstimateCell r={r} /></td>
-                  <td className="px-5 py-3"><RowActions r={r} {...actions} /></td>
+                  <td className="hidden px-3 py-3 text-slate-600 2xl:table-cell"><span className="whitespace-nowrap">{r.age_group}</span><span className="block text-xs text-slate-400">{r.referral_source}</span></td>
+                  <td className="px-2.5 py-3 xl:px-3"><StatusCell v={v} r={r} /></td>
+                  <td className="px-2.5 py-3 xl:px-3"><PriorityCell r={r} onChange={askPriority} canEdit={canEdit} /></td>
+                  <td className="px-2.5 py-3 xl:px-3"><EstimateCell r={r} /></td>
+                  <td className="px-4 py-3 xl:px-5"><RowActions r={r} {...actions} /></td>
                 </tr>
               ))}
             </tbody>
@@ -309,8 +325,26 @@ function WaitlistBody({ v }: { v: ClinicView }) {
           ))}
         </ul>
         {shown.length === 0 && (
-          <EmptyState icon={SearchX} title="No referrals match">
-            {query.trim() ? `Nothing in "${active.label}" has an ID containing "${query.trim()}".` : `No referrals are in "${active.label}" right now.`}
+          <EmptyState
+            icon={SearchX}
+            title="No referrals match"
+            action={
+              (query.trim() || filter !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setFilter("all");
+                    setSaved(null);
+                  }}
+                  className={btn("outline")}
+                >
+                  Clear search &amp; filters
+                </button>
+              )
+            }
+          >
+            {query.trim() ? `Nothing in "${active.label}" matches "${query.trim()}".` : `No referrals are in "${active.label}" right now.`}
           </EmptyState>
         )}
       </Card>
@@ -330,26 +364,26 @@ function WaitlistBody({ v }: { v: ClinicView }) {
       )}
 
       {preview && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={() => setPreviewId(null)}>
+        <div className="fixed inset-0 z-50 flex animate-backdrop-in justify-end bg-slate-950/45 backdrop-blur-[2px]" onClick={() => setPreviewId(null)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-label={`Family view preview for ${preview.referral.id}`}
-            className="flex h-full w-full flex-col bg-slate-50 shadow-2xl sm:max-w-md"
+            className="flex h-full w-full animate-drawer-in flex-col border-s border-slate-200 bg-slate-50 shadow-2xl sm:max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3.5">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Family view preview</p>
                 <p className="font-mono font-semibold text-slate-900">{preview.referral.id}</p>
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={() => setPreviewId(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Close preview">
+                <button onClick={() => setPreviewId(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label="Close preview">
                   <X className="size-5" />
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4">
               <FamilyReferralView data={preview} compact />
             </div>
           </div>
@@ -446,10 +480,13 @@ function ScenarioCard({ extra, setExtra, baseline, canEdit }: { extra: number; s
         </button>
       </div>
       <input type="range" min={-5} max={10} value={extra} disabled={!canEdit} onChange={(e) => setExtra(Number(e.target.value))} className="mt-4 w-full accent-teal-700" aria-label="Extra first assessments a week" />
-      <div className="flex justify-between text-xs text-slate-400">
-        <span>−5</span>
-        <span>0 = as recent weeks</span>
-        <span>+10</span>
+      {/* 0 sits 5/15 (33.33%) along -5..+10; place the label at the actual zero mark. */}
+      <div className="relative mt-1 h-4 text-xs text-slate-400">
+        <span className="absolute start-0">−5</span>
+        <span className="absolute -translate-x-1/2 font-medium text-slate-500" style={{ left: "33.333%" }}>
+          0 (recent)
+        </span>
+        <span className="absolute end-0">+10</span>
       </div>
       {extra !== 0 ? (
         <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
@@ -613,12 +650,27 @@ function PriorityDialog({ change, onCancel, onConfirm }: { change: { id: string;
   const [reason, setReason] = useState(REASONS[0]);
   const [note, setNote] = useState("");
   const full = reason === "Other" ? note.trim() : note.trim() ? `${reason}: ${note.trim()}` : reason;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onCancel}>
-      <div role="dialog" aria-modal="true" aria-label="Confirm priority change" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-slate-900">Change priority for {change.id}?</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          {PRIORITY_LABEL[change.from]} → <strong>{PRIORITY_LABEL[change.to]}</strong>. This moves the line and every estimate behind it, and families whose range moves by 2 weeks or more are told.
+    <div className="fixed inset-0 z-50 grid animate-backdrop-in place-items-center bg-slate-950/45 p-4 backdrop-blur-[2px]" onClick={onCancel}>
+      <div role="dialog" aria-modal="true" aria-label="Confirm priority change" className="w-full max-w-md animate-dialog-in rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-slate-200" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-lg font-semibold text-slate-900">Change priority for <span className="font-mono">{change.id}</span>?</h2>
+          <button type="button" onClick={onCancel} aria-label="Cancel" className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900">
+            <X className="size-4" aria-hidden />
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <PriorityBadge priority={change.from} />
+          <span className="text-slate-400" aria-hidden>→</span>
+          <PriorityBadge priority={change.to} />
+        </div>
+        <p className="mt-2 text-sm text-slate-600">
+          This moves the line and every estimate behind it, and families whose range moves by 2 weeks or more are told.
         </p>
         <fieldset className="mt-4 space-y-2">
           <legend className="text-sm font-medium text-slate-800">Reason</legend>
@@ -631,13 +683,13 @@ function PriorityDialog({ change, onCancel, onConfirm }: { change: { id: string;
         </fieldset>
         <label className="mt-3 block">
           <span className="text-sm font-medium text-slate-800">Note {reason === "Other" ? "(required)" : "(optional)"}</span>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-500" placeholder="No names or health details" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-500" placeholder="No names or health details" />
         </label>
         <div className="mt-4 flex justify-end gap-2">
-          <button onClick={onCancel} className={btn("outline")}>
+          <button type="button" onClick={onCancel} className={btn("outline")}>
             Cancel
           </button>
-          <button onClick={() => onConfirm(full)} disabled={!full} className={btn("primary")}>
+          <button type="button" onClick={() => onConfirm(full)} disabled={!full} className={btn("primary")}>
             Change priority
           </button>
         </div>

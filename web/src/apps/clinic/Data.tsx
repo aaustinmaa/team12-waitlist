@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { CheckCircle2, ClipboardCheck, CloudDownload, Columns3, Database, FileUp, History, Loader2, RefreshCw, Sparkles, TriangleAlert, Upload } from "lucide-react";
+import { useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
+import { CheckCircle2, ClipboardCheck, CloudDownload, Columns3, Database, FileUp, History, Loader2, RefreshCw, Sparkles, TriangleAlert, Upload, X } from "lucide-react";
 import { btn, Card, CardHeading, Chip } from "../../components/ui";
 import { PRIORITIES, RECORD_FIELDS, type RecordField } from "../../engine/types";
 import { DATE_FORMATS, type DateFormat } from "../../ingest/dates";
@@ -54,11 +54,10 @@ export function DataPage() {
   const canImport = !!p.staff && CAN.importData(p.staff.role);
   const [file, setFile] = useState<{ name: string; text: string; via: "upload" | "sync" } | null>(null);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const history = p.state.imports.filter((i) => i.clinicId === clinicId);
 
-  const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    e.target.value = "";
+  const loadFile = async (f: File | undefined) => {
     if (!f) return;
     if (!/\.(csv|tsv|txt)$/i.test(f.name)) {
       setSyncMsg("Save the export as CSV first (in Excel: File → Save As → CSV UTF-8). Excel files aren't read directly yet.");
@@ -66,6 +65,18 @@ export function DataPage() {
     }
     setSyncMsg(null);
     setFile({ name: f.name, text: await f.text(), via: "upload" });
+  };
+
+  const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    await loadFile(f);
+  };
+
+  const onDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    await loadFile(e.dataTransfer.files?.[0]);
   };
 
   /** Demo stand-in for the nightly automatic export: pick up the next file and import it with the saved recipe. */
@@ -158,16 +169,34 @@ export function DataPage() {
               <p className="mt-2 text-sm text-slate-600">
                 Any CSV your clinic system exports: one row per referral or one row per event, any column names, English or French. The first time, the columns are matched to ours (with AI if it's switched on in Settings) and you check the match. Later exports reuse it.
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <label className={btn("primary", "cursor-pointer")}>
-                  <FileUp className="size-4" aria-hidden /> Choose a file
-                  <input type="file" accept=".csv,.tsv,.txt,text/csv" onChange={onPick} className="sr-only" />
-                </label>
-                {setup.samples.map((s: SampleFile) => (
-                  <button key={s.name} onClick={() => setFile({ name: s.name, text: s.text, via: "upload" })} className={btn("outline")}>
-                    Sample: {s.note}
-                  </button>
-                ))}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={onDrop}
+                className={`mt-4 rounded-xl border border-dashed p-4 transition-colors ${
+                  dragging ? "border-teal-500 bg-teal-50/70" : "border-slate-300 bg-slate-50/60"
+                }`}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className={btn("primary", "cursor-pointer")}>
+                    <FileUp className="size-4" aria-hidden /> Choose a file
+                    <input type="file" accept=".csv,.tsv,.txt,text/csv" onChange={onPick} className="sr-only" />
+                  </label>
+                  <span className="text-xs text-slate-500">or drag and drop a .csv / .tsv export here</span>
+                </div>
+                {setup.samples.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/80 pt-3">
+                    <span className="text-xs font-medium text-slate-500">Or try a sample export:</span>
+                    {setup.samples.map((s: SampleFile) => (
+                      <button key={s.name} type="button" onClick={() => setFile({ name: s.name, text: s.text, via: "upload" })} className={btn("outline", "py-1.5 text-xs")}>
+                        {s.note}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -181,10 +210,10 @@ export function DataPage() {
         {history.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">No imports yet.</p>
         ) : (
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto overscroll-x-contain">
             <table className="w-full text-left text-sm">
               <thead className="text-[0.6875rem] uppercase tracking-wider text-slate-500">
-                <tr>
+                <tr className="whitespace-nowrap">
                   <th className="py-2 pr-3 font-medium">When</th>
                   <th className="py-2 pr-3 font-medium">File</th>
                   <th className="py-2 pr-3 font-medium">How</th>
@@ -197,7 +226,7 @@ export function DataPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {history.map((h) => (
-                  <tr key={h.id}>
+                  <tr key={h.id} className="transition-colors duration-150 hover:bg-teal-50/50">
                     <td className="whitespace-nowrap py-2 pr-3 text-slate-600">{new Date(h.at).toLocaleString("en-CA", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</td>
                     <td className="py-2 pr-3 font-mono text-xs">{h.fileName}</td>
                     <td className="py-2 pr-3">{h.via === "upload" ? `Upload · ${h.by}` : "Nightly sync"}</td>
@@ -206,8 +235,10 @@ export function DataPage() {
                     <td className="py-2 pr-3 text-slate-600">
                       {h.diff ? `+${h.diff.added} new, ${h.diff.closed} left, ${h.diff.booked} booked${h.diff.vanished.length ? `, ${h.diff.vanished.length} to review` : ""}` : "First import"}
                     </td>
-                    <td className="py-2 pr-3">
-                      {h.errors} errors · {h.warnings} warnings
+                    <td className="whitespace-nowrap py-2 pr-3">
+                      <span className={h.errors > 0 ? "font-medium text-rose-700" : "text-slate-500"}>{h.errors} errors</span>
+                      {" · "}
+                      <span className={h.warnings > 0 ? "font-medium text-amber-800" : "text-slate-500"}>{h.warnings} warnings</span>
                     </td>
                     <td className="py-2">{h.recipeBy === "gemini" ? "AI (Gemini)" : h.recipeBy === "staff" ? "Staff" : "Rules"}</td>
                   </tr>
@@ -313,7 +344,7 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
               {recipe.shape === "per_event" ? "one row per event" : "one row per referral"} · dates {recipe.date_format}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {origin === "saved" ? (
               <Chip tone="green">Using this clinic's saved mapping</Chip>
             ) : recipe.proposed_by === "gemini" ? (
@@ -323,6 +354,9 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
             ) : (
               <Chip tone="slate">Proposed by matching rules</Chip>
             )}
+            <button type="button" onClick={onDone} className={btn("outline", "px-2.5 py-1 text-xs")}>
+              <X className="size-3.5" aria-hidden /> Cancel
+            </button>
           </div>
         </div>
         {aiError && (
@@ -460,7 +494,7 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
             {errors.length + warnings.length > 30 && <li className="text-slate-500">…and {errors.length + warnings.length - 30} more</li>}
           </ul>
         )}
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4 overflow-x-auto overscroll-x-contain">
           <table className="w-full text-left text-xs">
             <thead className="text-slate-500">
               <tr>

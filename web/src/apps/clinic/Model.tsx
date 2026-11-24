@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Activity, BookOpen, CheckCircle2, Scale, Target, TriangleAlert } from "lucide-react";
 import { Card, CardHeading } from "../../components/ui";
 import { judge } from "../../engine/backtest";
@@ -28,6 +29,7 @@ function Body({ v }: { v: ClinicView }) {
     if (j) counts[j]++;
   }
   const maxT = Math.max(1, ...p.weeklyThroughput);
+  const [hoverWeek, setHoverWeek] = useState<number | null>(null);
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">How the estimates are made</h1>
@@ -67,12 +69,31 @@ function Body({ v }: { v: ClinicView }) {
             <Row k="Leave the list without an assessment" v={`${(p.withdrawWeekly * 100).toFixed(2)}% a week`} />
             <Row k="Typical time to complete intake" v={p.intakeMedianDays === null ? "–" : `${p.intakeMedianDays} days`} />
           </dl>
-          <div className="mt-4 flex h-16 items-end gap-px" aria-label="First assessments each week">
+          <div className="mt-4 flex h-16 items-end gap-0.5" aria-label="First assessments each week" onMouseLeave={() => setHoverWeek(null)}>
             {p.weeklyThroughput.map((t, i) => (
-              <span key={i} className="flex-1 rounded-t bg-teal-600/70" style={{ height: `${(t / maxT) * 100}%` }} title={`${t}`} />
+              <button
+                key={i}
+                type="button"
+                onMouseEnter={() => setHoverWeek(i)}
+                onFocus={() => setHoverWeek(i)}
+                onBlur={() => setHoverWeek(null)}
+                aria-label={`Week ${i + 1}: ${t} first assessment${t === 1 ? "" : "s"}`}
+                className={`min-h-[3px] flex-1 rounded-t transition-colors ${
+                  hoverWeek === i ? "bg-teal-700" : hoverWeek !== null ? "bg-teal-600/35" : "bg-teal-600/70"
+                }`}
+                style={{ height: `${Math.max(5, (t / maxT) * 100)}%` }}
+              />
             ))}
           </div>
-          <p className="mt-1 text-xs text-slate-500">First assessments each week, oldest left. The simulation replays these real weeks in shuffled blocks.</p>
+          <p className="mt-1.5 text-xs text-slate-500">
+            {hoverWeek !== null ? (
+              <span className="font-medium text-slate-700">
+                Week {hoverWeek + 1} of {p.weeklyThroughput.length}: {p.weeklyThroughput[hoverWeek]} first assessment{p.weeklyThroughput[hoverWeek] === 1 ? "" : "s"}
+              </span>
+            ) : (
+              "First assessments each week, oldest left. Hover a bar for its count; the simulation replays these real weeks in shuffled blocks."
+            )}
+          </p>
         </Card>
 
         <Card>

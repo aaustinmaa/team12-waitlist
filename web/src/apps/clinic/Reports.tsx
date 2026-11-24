@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
 import {
   Activity,
@@ -460,6 +460,7 @@ const unpack = (t: { header: string[]; rows: Parameters<typeof toCsv>[1] }) => [
  */
 function DownloadCard({ quarter }: { quarter: Quarter }) {
   const [saved, setSaved] = useState<string | null>(null);
+  useEffect(() => setSaved(null), [quarter.key]);
   const referrals = useMemo(() => quarterTable(quarter), [quarter]);
   const summary = useMemo(summaryTable, []);
   const save = (filename: string, t: Parameters<typeof unpack>[0]) => {

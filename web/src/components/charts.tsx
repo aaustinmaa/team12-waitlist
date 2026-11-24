@@ -4,6 +4,7 @@
 // only reachable by hovering.
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { parseDay } from "../lib/dates";
 
 export const C = {
@@ -80,7 +81,7 @@ function Tooltip({ x, width, children }: { x: number; width: number; children: R
     <div
       ref={ref}
       role="status"
-      className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-black/10"
+      className="pointer-events-none absolute top-1 z-10 min-w-36 rounded-lg bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-slate-200 transition-[left] duration-75"
       style={{ left }}
     >
       {children}
@@ -241,7 +242,7 @@ export function TimeChart({
           onPointerMove={(e) => setActive(nearest(e.clientX - e.currentTarget.getBoundingClientRect().left))}
           onPointerDown={(e) => setActive(nearest(e.clientX - e.currentTarget.getBoundingClientRect().left))}
           onPointerLeave={() => setActive(null)}
-          className="absolute inset-0 touch-pan-y overflow-visible outline-none"
+          className="absolute inset-0 cursor-crosshair touch-pan-y overflow-visible outline-none"
         >
           <title id={titleId}>{`${label}. Use the left and right arrow keys to read values.`}</title>
           {band && (
@@ -385,7 +386,7 @@ export function RangeChart({
           onPointerMove={pick}
           onPointerDown={pick}
           onPointerLeave={() => setActive(null)}
-          className="absolute inset-0 touch-pan-y outline-none"
+          className="absolute inset-0 cursor-crosshair touch-pan-y outline-none"
         >
           <title id={titleId}>{`${label}. Use the left and right arrow keys to read each referral.`}</title>
           <g fontSize={11} fill={C.muted}>
@@ -432,9 +433,12 @@ export function RangeChart({
 /** "Show as table" twin for a chart. */
 export function TableView({ header, rows }: { header: string[]; rows: (string | number)[][] }) {
   return (
-    <details className="mt-3 text-sm print:hidden">
-      <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-800">Show as table</summary>
-      <div className="mt-2 max-h-72 overflow-auto rounded-lg ring-1 ring-slate-200">
+    <details className="group mt-3 text-sm print:hidden">
+      <summary className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 text-xs font-medium text-slate-500 hover:text-slate-800">
+        <ChevronDown className="size-3.5 transition-transform duration-150 group-open:rotate-180" aria-hidden />
+        Show as table
+      </summary>
+      <div className="mt-2 max-h-72 overflow-auto overscroll-contain rounded-lg ring-1 ring-slate-200">
         <table className="w-full text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 text-slate-500">
             <tr>
@@ -447,7 +451,7 @@ export function TableView({ header, rows }: { header: string[]; rows: (string | 
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((r, i) => (
-              <tr key={i}>
+              <tr key={i} className="transition-colors duration-100 hover:bg-teal-50/50">
                 {r.map((c, j) => (
                   <td key={j} className={`px-3 py-1.5 ${j > 0 ? "text-right tabular-nums" : "whitespace-nowrap"}`}>
                     {c}
@@ -540,7 +544,7 @@ export function BarChart({
           onPointerMove={pick}
           onPointerDown={pick}
           onPointerLeave={() => setActive(null)}
-          className="absolute inset-0 touch-pan-y outline-none"
+          className="absolute inset-0 cursor-crosshair touch-pan-y outline-none"
         >
           <title id={titleId}>{`${label}. Use the left and right arrow keys to read each month.`}</title>
           {p && <rect x={m.left + groupW * active!} y={m.top} width={groupW} height={plotH} fill={C.band} />}

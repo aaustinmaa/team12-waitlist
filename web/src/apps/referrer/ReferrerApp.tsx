@@ -5,7 +5,7 @@
 import { useId, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import { CalendarClock, ChevronDown, Clock, ExternalLink, Info, Languages, MapPin, Phone, Send, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
-import { btn, Card, CardHeading, Chip, METRIC, type MetricKind } from "../../components/ui";
+import { btn, Card, CardHeading, Chip, METRIC, SkipLink, useScrolled, type MetricKind } from "../../components/ui";
 import { fmtLong } from "../../lib/dates";
 import { directoryEntry, sortByWait, speaks, type DirectoryEntry, type WaitAnswer } from "../../lib/referrer";
 import type { ClinicianLanguage, Priority } from "../../lib/types";
@@ -36,6 +36,7 @@ function readSession(): typeof DEMO_REFERRER | null {
 
 export function ReferrerApp() {
   const [session, setSession] = useState(readSession);
+  const scrolled = useScrolled();
   const signIn = () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(DEMO_REFERRER));
     setSession(DEMO_REFERRER);
@@ -47,20 +48,25 @@ export function ReferrerApp() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-wash">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6">
+      <SkipLink />
+      <header
+        className={`sticky top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+          scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
+        }`}
+      >
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:px-6">
           <Brand sub="For referrers" />
-          <div className="ms-auto flex items-center gap-1">
+          <div className="ms-auto flex items-center gap-1.5">
             <ThemeButton />
             {session && (
-              <button type="button" onClick={signOut} className="whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100">
+              <button type="button" onClick={signOut} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
                 <span className="hidden sm:inline">{session.name} · </span>Sign out
               </button>
             )}
           </div>
         </div>
       </header>
-      <main className="relative isolate flex-1">
+      <main id="main-content" tabIndex={-1} className="relative isolate flex-1 outline-none">
         {/* Same soft brand wash as the family app behind the top of the page. */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
         <div key={session ? "compare" : "sign-in"} className="animate-page-in">
@@ -75,7 +81,10 @@ export function ReferrerApp() {
 function SignIn({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
-      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Compare waits before you refer</h1>
+      <span className="mb-5 grid size-12 place-items-center rounded-2xl bg-white text-teal-700 shadow-sm ring-1 ring-teal-100" aria-hidden>
+        <Stethoscope className="size-6" />
+      </span>
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Compare waits before you refer</h1>
       <p className="mt-2 text-slate-600">
         See how long a child referred today would likely wait for a first speech-language assessment at each clinic, worked out from the clinic's own records.
       </p>
@@ -89,7 +98,7 @@ function SignIn({ onSignIn }: { onSignIn: () => void }) {
           Continue as demo referrer
         </button>
         <p className="mt-2 text-xs text-slate-500">
-          {DEMO_REFERRER.name}, {DEMO_REFERRER.role.toLowerCase()}. Fictional clinics, synthetic data.
+          {DEMO_REFERRER.name}, {DEMO_REFERRER.role[0].toLowerCase() + DEMO_REFERRER.role.slice(1)}. Fictional clinics, synthetic data.
         </p>
       </Card>
     </div>
@@ -140,9 +149,9 @@ function Compare() {
           </fieldset>
           <label className="block text-sm">
             <span className="font-medium text-slate-800">Family's language</span>
-            <span className="mt-2 flex items-center gap-2 rounded-lg py-1.5 ps-3 pe-2 ring-1 ring-inset ring-slate-300">
+            <span className="mt-2 flex items-center gap-2 rounded-lg border border-slate-300 bg-white py-1.5 pe-2 ps-3 transition-[border-color,box-shadow] focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/25">
               <Languages className="size-4 shrink-0 text-slate-500" aria-hidden />
-              <select value={lang} onChange={(e) => setLang(e.target.value as ClinicianLanguage | "any")} className="w-full bg-transparent font-medium text-slate-900 outline-none sm:w-40">
+              <select value={lang} onChange={(e) => setLang(e.target.value as ClinicianLanguage | "any")} className="no-field-focus w-full bg-transparent font-medium text-slate-900 outline-none sm:w-40">
                 <option value="any">Any language</option>
                 {langs.map((l) => (
                   <option key={l} value={l}>
@@ -219,10 +228,10 @@ function ClinicCard({ e, priority }: { e: DirectoryEntry; priority: Priority }) 
         <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-4">
           <Fact kind="count" icon={<Users className="size-4" aria-hidden />} label="Waiting now" value={`${e.waitingNow} children`} />
           <Fact kind="count" icon={<CalendarClock className="size-4" aria-hidden />} label="First assessments" value={`${e.perWeek} a week`} />
-          <Fact kind="wait" icon={<Info className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
+          <Fact kind="wait" icon={<Clock className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
           <Fact
             kind={e.coverage === null ? "count" : "quality"}
-            icon={<Info className="size-4" aria-hidden />}
+            icon={<ShieldCheck className="size-4" aria-hidden />}
             label="Past estimates held"
             value={e.coverage === null ? "Not checked yet" : `${Math.round(e.coverage * 100)}% of the time`}
           />
