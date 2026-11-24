@@ -33,6 +33,13 @@ describe("referrer comparison", () => {
     }
   });
 
+  it("the details show the same wait at every priority as picking that priority would", () => {
+    const e = byId(entries("standard"), "maple-grove");
+    for (const p of ["standard", "high", "urgent"] as Priority[]) expect(e.waits[p]).toEqual(byId(entries(p), "maple-grove").wait);
+    expect(e.address).toContain("Waterloo");
+    expect(e.checkedAgainst).toBeGreaterThan(0);
+  });
+
   it("lists the shortest expected wait first and clinics without an estimate last", () => {
     const sorted = sortByWait(entries("standard"));
     expect(sorted[sorted.length - 1].clinicId).toBe("lakeshore");

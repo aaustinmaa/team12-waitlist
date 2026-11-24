@@ -10,7 +10,10 @@
         if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
       } catch (e) {}
     </script>
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- ?v=2: a new address so browsers drop the old cached icon. PNGs for browsers without SVG tab icons and for home screens. -->
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=2" />
+    <link rel="apple-touch-icon" href="./favicon-180.png?v=2" />
     <meta name="description" content="Check your child's referral and wait estimate. Course prototype (CS 497 Team 12); synthetic data only." />
     <meta name="apple-mobile-web-app-title" content="ClearWait" />
     <meta name="application-name" content="ClearWait" />
