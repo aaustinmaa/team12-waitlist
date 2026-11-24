@@ -5,7 +5,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { CalendarClock, Info, Languages, Send, Stethoscope, Users } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
-import { btn, Card, CardHeading, Chip } from "../../components/ui";
+import { btn, Card, CardHeading, Chip, METRIC, type MetricKind } from "../../components/ui";
 import { fmtLong } from "../../lib/dates";
 import { directoryEntry, sortByWait, speaks, type DirectoryEntry } from "../../lib/referrer";
 import type { ClinicianLanguage, Priority } from "../../lib/types";
@@ -46,7 +46,7 @@ export function ReferrerApp() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col bg-wash">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6">
           <Brand sub="For referrers" />
@@ -60,7 +60,13 @@ export function ReferrerApp() {
           </div>
         </div>
       </header>
-      <main className="flex-1">{session ? <Compare /> : <SignIn onSignIn={signIn} />}</main>
+      <main className="relative isolate flex-1">
+        {/* Same soft brand wash as the family app behind the top of the page. */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
+        <div key={session ? "compare" : "sign-in"} className="animate-page-in">
+          {session ? <Compare /> : <SignIn onSignIn={signIn} />}
+        </div>
+      </main>
       <DemoFooter />
     </div>
   );
@@ -74,7 +80,7 @@ function SignIn({ onSignIn }: { onSignIn: () => void }) {
         See how long a child referred today would likely wait for a first speech-language assessment at each clinic, worked out from the clinic's own records.
       </p>
       <Card className="mt-6">
-        <CardHeading>Referrer sign-in</CardHeading>
+        <CardHeading icon={Stethoscope}>Referrer sign-in</CardHeading>
         <p className="mt-2 text-sm text-slate-700">
           Clinics share these numbers with the clinicians who refer to them, not with the public. In the real service you sign in with your clinician account.
         </p>
@@ -166,7 +172,7 @@ function Compare() {
       )}
 
       <Card className="mt-8">
-        <CardHeading>Before you choose</CardHeading>
+        <CardHeading icon={Info}>Before you choose</CardHeading>
         <ul className="mt-3 list-disc space-y-2 ps-5 text-sm text-slate-700">
           <li>Check that the family is eligible. Many publicly funded programs only take children from their own area.</li>
           <li>These are estimates, updated with each clinic's data. If many referrals go to one clinic, its estimate goes up at the next update.</li>
@@ -199,10 +205,11 @@ function ClinicCard({ e }: { e: DirectoryEntry }) {
       </div>
 
       <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-4">
-        <Fact icon={<Users className="size-4" aria-hidden />} label="Waiting now" value={`${e.waitingNow} children`} />
-        <Fact icon={<CalendarClock className="size-4" aria-hidden />} label="First assessments" value={`${e.perWeek} a week`} />
-        <Fact icon={<Info className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
+        <Fact kind="count" icon={<Users className="size-4" aria-hidden />} label="Waiting now" value={`${e.waitingNow} children`} />
+        <Fact kind="count" icon={<CalendarClock className="size-4" aria-hidden />} label="First assessments" value={`${e.perWeek} a week`} />
+        <Fact kind="wait" icon={<Info className="size-4" aria-hidden />} label="Intake usually takes" value={`${e.intakeDays} days`} />
         <Fact
+          kind={e.coverage === null ? "count" : "quality"}
           icon={<Info className="size-4" aria-hidden />}
           label="Past estimates held"
           value={e.coverage === null ? "Not checked yet" : `${Math.round(e.coverage * 100)}% of the time`}
@@ -225,12 +232,12 @@ function ClinicCard({ e }: { e: DirectoryEntry }) {
 function Wait({ e }: { e: DirectoryEntry }) {
   if (e.wait.kind === "range")
     return (
-      <div className="shrink-0 rounded-xl bg-teal-50 px-4 py-3 sm:text-end">
-        <p className="text-xs font-medium uppercase tracking-wide text-teal-800">Expected wait</p>
-        <p className="text-2xl font-bold text-teal-900">
+      <div className="shrink-0 rounded-xl bg-indigo-50 px-4 py-3 ring-1 ring-inset ring-indigo-100 sm:text-end">
+        <p className="text-xs font-medium uppercase tracking-wide text-indigo-700">Expected wait</p>
+        <p className={`text-2xl font-bold tabular-nums ${METRIC.estimate.value}`}>
           {e.wait.lower}–{e.wait.upper} weeks
         </p>
-        <p className="text-xs text-teal-800">to a first assessment</p>
+        <p className="text-xs text-indigo-700">to a first assessment</p>
       </div>
     );
   return (
@@ -244,14 +251,14 @@ function Wait({ e }: { e: DirectoryEntry }) {
   );
 }
 
-function Fact({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+function Fact({ icon, label, value, kind }: { icon: ReactNode; label: string; value: string; kind: MetricKind }) {
   return (
     <div>
       <dt className="flex items-center gap-1 text-xs text-slate-500">
         {icon}
         {label}
       </dt>
-      <dd className="mt-0.5 font-semibold text-slate-900">{value}</dd>
+      <dd className={`mt-0.5 font-semibold tabular-nums ${METRIC[kind].value}`}>{value}</dd>
     </div>
   );
 }
