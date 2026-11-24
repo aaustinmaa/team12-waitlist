@@ -331,7 +331,7 @@ export function jumpTo(id: string) {
 }
 
 /** True once the page (or an inner scroll pane) has moved off the top, so sticky headers can show a crisp shadow. */
-export function useScrolled(ref?: RefObject<HTMLElement | null>) {
+export function useScrolled(ref?: RefObject<HTMLElement | null>, dep?: unknown) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const el = ref?.current ?? null;
@@ -343,7 +343,7 @@ export function useScrolled(ref?: RefObject<HTMLElement | null>) {
       window.removeEventListener("scroll", update);
       el?.removeEventListener("scroll", update);
     };
-  }, [ref]);
+  }, [ref, dep]);
   return scrolled;
 }
 

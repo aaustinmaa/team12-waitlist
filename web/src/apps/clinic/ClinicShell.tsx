@@ -29,14 +29,14 @@ const initials = (name: string) =>
 export function ClinicShell() {
   const { pathname } = useLocation();
   const p = usePlatform();
+  const staff = p.staff;
+  const setup = staff ? clinicSetup(staff.clinicId) : null;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrolled = useScrolled(scrollRef);
+  const scrolled = useScrolled(scrollRef, !!staff);
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
     window.scrollTo(0, 0);
   }, [pathname]);
-  const staff = p.staff;
-  const setup = staff ? clinicSetup(staff.clinicId) : null;
   const nav = staff ? NAV.filter((n) => n.show(staff.role)) : [];
   const current = nav.find((n) => pathname.startsWith(n.to));
 
@@ -62,13 +62,13 @@ export function ClinicShell() {
     </>
   );
 
-  // Signed out: a plain header, no sections to show yet.
+  // Signed out: fixed top header so vertical rubber-band bounce moves only the grey content underneath.
   if (!staff || !setup) {
     return (
-      <div className="flex min-h-dvh flex-col">
+      <div className="flex min-h-dvh flex-col pt-16 print:pt-0">
         <SkipLink />
         <header
-          className={`sticky top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+          className={`fixed inset-x-0 top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
             scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
           }`}
         >
@@ -90,9 +90,9 @@ export function ClinicShell() {
   }
 
   return (
-    <div className="flex min-h-dvh lg:h-dvh lg:overflow-hidden print:h-auto print:overflow-visible">
+    <div className="flex h-dvh overflow-hidden print:h-auto print:overflow-visible">
       <SkipLink />
-      {/* Desktop: locked sidebar frame so scrolling never pulls the chrome off the viewport edge. */}
+      {/* Desktop: locked sidebar frame; vertical bounce happens inside the grey content pane only. */}
       <aside className="z-40 hidden h-full w-64 shrink-0 flex-col bg-nav text-nav-fg lg:flex print:hidden">
         <Link to="/waitlist" className="block px-5 pb-5 pt-6">
           <Brand sub="Clinic portal" onDark />
@@ -140,9 +140,9 @@ export function ClinicShell() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col lg:h-full lg:overflow-hidden print:h-auto print:overflow-visible">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden print:h-auto print:overflow-visible">
         <header
-          className={`sticky top-0 z-30 shrink-0 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+          className={`z-30 shrink-0 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
             scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
           }`}
         >
@@ -197,7 +197,7 @@ export function ClinicShell() {
             </nav>
           </div>
         </header>
-        <div ref={scrollRef} className="flex flex-1 flex-col lg:overflow-y-auto lg:overscroll-contain print:overflow-visible">
+        <div ref={scrollRef} className="flex flex-1 flex-col overflow-y-auto overscroll-x-none overscroll-y-contain print:overflow-visible">
           <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
             {body}
           </main>

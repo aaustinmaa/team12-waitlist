@@ -268,14 +268,14 @@
 
 html {
   background-color: var(--color-slate-50);
-  /* Stop trackpad/touch rubber-band overscroll from pulling sticky headers off the viewport edge or sliding sideways. */
-  overscroll-behavior: none;
+  /* Block horizontal overscroll drift while preserving natural vertical rubber-band bounce on page content. */
+  overscroll-behavior-x: none;
   overflow-x: clip;
 }
 
 body {
   @apply bg-slate-50 text-slate-800 antialiased;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   overflow-x: clip;
   /* Inter's clearer 1/l/I. (Tabular figures go on tables and stat figures only: in Inter they also widen hyphens.) */
   font-feature-settings: "cv11", "ss01", "cv05";

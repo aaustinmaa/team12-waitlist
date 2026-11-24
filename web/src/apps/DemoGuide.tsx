@@ -95,10 +95,10 @@ function QrCards() {
 export function DemoGuide() {
   const scrolled = useScrolled();
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col pt-16 print:pt-0">
       <SkipLink />
       <header
-        className={`sticky top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+        className={`fixed inset-x-0 top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
           scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
         }`}
       >
