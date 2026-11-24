@@ -68,7 +68,7 @@ export function ReferrerApp() {
       </header>
       <main id="main-content" tabIndex={-1} className="relative isolate flex-1 outline-none">
         {/* Same soft brand wash as the family app behind the top of the page. */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[30rem] bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
         <div key={session ? "compare" : "sign-in"} className="animate-page-in">
           {session ? <Compare /> : <SignIn onSignIn={signIn} />}
         </div>

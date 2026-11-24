@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { ArrowRight, BarChart3, ChevronRight, Database, Eye, EyeOff, Gauge, ListOrdered, LogOut, ScrollText, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
@@ -31,10 +31,8 @@ export function ClinicShell() {
   const p = usePlatform();
   const staff = p.staff;
   const setup = staff ? clinicSetup(staff.clinicId) : null;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrolled = useScrolled(scrollRef, !!staff);
+  const scrolled = useScrolled();
   useEffect(() => {
-    scrollRef.current?.scrollTo(0, 0);
     window.scrollTo(0, 0);
   }, [pathname]);
   const nav = staff ? NAV.filter((n) => n.show(staff.role)) : [];
@@ -90,10 +88,10 @@ export function ClinicShell() {
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden print:h-auto print:overflow-visible">
+    <div className="min-h-dvh">
       <SkipLink />
-      {/* Desktop: locked sidebar frame; vertical bounce happens inside the grey content pane only. */}
-      <aside className="z-40 hidden h-full w-64 shrink-0 flex-col bg-nav text-nav-fg lg:flex print:hidden">
+      {/* Desktop: fixed sidebar; the grey page scrolls on window so native vertical rubber-band bounce stays intact while chrome never moves. */}
+      <aside className="fixed inset-y-0 start-0 z-40 hidden w-64 flex-col bg-nav text-nav-fg lg:flex print:hidden">
         <Link to="/waitlist" className="block px-5 pb-5 pt-6">
           <Brand sub="Clinic portal" onDark />
         </Link>
@@ -140,69 +138,68 @@ export function ClinicShell() {
         </div>
       </aside>
 
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden print:h-auto print:overflow-visible">
-        <header
-          className={`z-30 shrink-0 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
-            scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
-          }`}
-        >
-          {/* Desktop: where you are. */}
-          <div className="hidden h-16 items-center gap-3 px-6 lg:flex">
-            <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
-              <span className="truncate text-slate-500">{setup.info.name}</span>
-              {current && (
-                <>
-                  <ChevronRight className="size-4 shrink-0 text-slate-400" aria-hidden />
-                  <span className="flex items-center gap-1.5 font-medium text-slate-900">
-                    <current.icon className="size-4 text-teal-700" aria-hidden />
-                    {current.label}
-                  </span>
-                </>
-              )}
-            </nav>
-            <div className="ms-auto flex items-center gap-2">
-              <ThemeButton />
-            </div>
+      <header
+        className={`fixed inset-x-0 top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 lg:start-64 print:hidden ${
+          scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
+        }`}
+      >
+        {/* Desktop: where you are. */}
+        <div className="hidden h-16 items-center gap-3 px-6 lg:flex">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
+            <span className="truncate text-slate-500">{setup.info.name}</span>
+            {current && (
+              <>
+                <ChevronRight className="size-4 shrink-0 text-slate-400" aria-hidden />
+                <span className="flex items-center gap-1.5 font-medium text-slate-900">
+                  <current.icon className="size-4 text-teal-700" aria-hidden />
+                  {current.label}
+                </span>
+              </>
+            )}
+          </nav>
+          <div className="ms-auto flex items-center gap-2">
+            <ThemeButton />
           </div>
-
-          {/* Phone and tablet: brand row plus a scrolling row of sections. */}
-          <div className="lg:hidden">
-            <div className="flex h-16 items-center gap-2 px-4 sm:px-6">
-              <Link to="/waitlist" className="min-w-0 shrink">
-                <Brand sub={`${setup.info.name} · ${ROLE_LABEL[staff.role]}`} />
-              </Link>
-              <div className="ms-auto flex items-center gap-1">
-                <ThemeButton />
-                <button type="button" onClick={p.signOutStaff} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                  Sign out
-                </button>
-              </div>
-            </div>
-            <nav aria-label="Clinic portal" className="no-scrollbar flex gap-1 overflow-x-auto overscroll-x-contain px-3 pb-2.5 sm:px-5">
-              {nav.map((n) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  title={n.hint}
-                  className={({ isActive }) =>
-                    `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
-                      isActive ? "bg-teal-50 text-teal-800 ring-1 ring-inset ring-teal-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    }`
-                  }
-                >
-                  <n.icon className="size-4" aria-hidden />
-                  {n.label}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </header>
-        <div ref={scrollRef} className="flex flex-1 flex-col overflow-y-auto overscroll-x-none overscroll-y-contain print:overflow-visible">
-          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
-            {body}
-          </main>
-          <DemoFooter />
         </div>
+
+        {/* Phone and tablet: brand row (64px) plus a scrolling row of sections (44px) = 108px total. */}
+        <div className="lg:hidden">
+          <div className="flex h-16 items-center gap-2 px-4 sm:px-6">
+            <Link to="/waitlist" className="min-w-0 shrink">
+              <Brand sub={`${setup.info.name} · ${ROLE_LABEL[staff.role]}`} />
+            </Link>
+            <div className="ms-auto flex items-center gap-1">
+              <ThemeButton />
+              <button type="button" onClick={p.signOutStaff} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                Sign out
+              </button>
+            </div>
+          </div>
+          <nav aria-label="Clinic portal" className="no-scrollbar flex h-11 items-center gap-1 overflow-x-auto overscroll-x-contain px-3 pb-1.5 sm:px-5">
+            {nav.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                title={n.hint}
+                className={({ isActive }) =>
+                  `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
+                    isActive ? "bg-teal-50 text-teal-800 ring-1 ring-inset ring-teal-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`
+                }
+              >
+                <n.icon className="size-4" aria-hidden />
+                {n.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <div className="flex min-h-dvh min-w-0 flex-col pt-[108px] lg:ps-64 lg:pt-16 print:ps-0 print:pt-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+          {body}
+        </main>
+        <DemoFooter />
       </div>
     </div>
   );

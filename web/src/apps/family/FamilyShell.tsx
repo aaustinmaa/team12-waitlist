@@ -71,7 +71,7 @@ export function FamilyShell() {
       </header>
       <main id="main-content" tabIndex={-1} className="relative isolate flex-1 outline-none">
         {/* The family app is warmer than the staff portal: a soft wash of brand blue fading into a plain, hue-free light grey behind the top of each page. */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[30rem] bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
         {/* Keyed by page so each new page fades in instead of popping. */}
         <div key={pathname} className="animate-page-in">
           <Outlet />
