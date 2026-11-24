@@ -1,10 +1,24 @@
 import { Link } from "react-router";
+import { Compass } from "lucide-react";
+import { btn, Card, EmptyState } from "../components/ui";
 
 export function NotFound() {
   return (
-    <div className="mx-auto max-w-xl px-4 py-16 text-center">
-      <h1 className="text-2xl font-semibold text-slate-900">Page not found</h1>
-      <Link to="/" className="mt-4 inline-block font-medium text-teal-700 underline">Back to the start</Link>
+    <div className="mx-auto max-w-lg px-4 py-16">
+      <Card>
+        <h1 className="sr-only">Page not found</h1>
+        <EmptyState
+          icon={Compass}
+          title="Page not found"
+          action={
+            <Link to="/" className={btn("primary")}>
+              Back to the start
+            </Link>
+          }
+        >
+          That address doesn't match a page in this portal.
+        </EmptyState>
+      </Card>
     </div>
   );
 }

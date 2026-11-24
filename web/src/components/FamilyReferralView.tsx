@@ -250,8 +250,8 @@ function EstimateCard({ data, ids }: { data: FamilyReferralResponse; ids: Ids })
 
       <NotifyPromise data={data} kind="change" ids={ids} />
 
-      <details className="group mt-4 rounded-xl border border-slate-200">
-        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-800">
+      <details className="group mt-4 rounded-xl border border-slate-200 bg-white/70">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 hover:bg-white">
           {t.estimate.whyTitle}
           <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
         </summary>
@@ -345,13 +345,17 @@ function Journey({ data }: { data: FamilyReferralResponse }) {
           <li key={s.label} className="relative flex gap-3 pb-5 last:pb-0 sm:flex-col sm:pb-0">
             {i < steps.length - 1 && (
               <span
-                className={`absolute start-[11px] top-6 h-[calc(100%-1.5rem)] w-0.5 sm:start-6 sm:top-[11px] sm:h-0.5 sm:w-[calc(100%-0.75rem)] ${s.state === "done" ? "bg-slate-500" : "bg-slate-200"}`}
+                className={`absolute start-[11px] top-6 h-[calc(100%-1.5rem)] w-0.5 sm:start-6 sm:top-[11px] sm:h-0.5 sm:w-[calc(100%-0.75rem)] ${s.state === "done" ? "bg-teal-500" : "bg-slate-200"}`}
                 aria-hidden
               />
             )}
             <span
               className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                s.state === "done" ? "bg-slate-600 text-white" : s.state === "current" ? "bg-white text-slate-900 ring-4 ring-slate-700" : "bg-slate-200 text-slate-500"
+                s.state === "done"
+                  ? "bg-teal-600 text-white dark:bg-teal-400 dark:text-slate-950"
+                  : s.state === "current"
+                    ? "bg-white text-teal-800 ring-4 ring-teal-600/80 dark:ring-teal-400/80"
+                    : "bg-slate-200 text-slate-500"
               }`}
             >
               {s.state === "done" ? "✓" : i + 1}
@@ -416,8 +420,8 @@ function ContactCard({ id, referralId, clinic }: { id?: string; referralId: stri
 function HowEstimated({ data }: { data: FamilyReferralResponse }) {
   const { t } = useI18n();
   return (
-    <details className="group mt-2 rounded-xl border border-slate-200">
-      <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-800">
+    <details className="group mt-2 rounded-xl border border-slate-200 bg-white/70">
+      <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 hover:bg-white">
         {t.how.heading}
         <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
       </summary>

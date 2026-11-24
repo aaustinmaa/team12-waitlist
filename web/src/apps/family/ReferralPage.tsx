@@ -130,16 +130,16 @@ function ReferralBody({ v, id }: { v: ClinicView; id: string }) {
       {/* A new update arrived while this page was open (for example, staff just completed intake in another tab). */}
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 print:hidden">
         {fresh.notice && (
-          <div dir={dir} lang={lang} className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl bg-slate-900 p-4 text-white shadow-2xl">
-            <Bell className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <div dir={dir} lang={lang} className="pointer-events-auto flex w-full max-w-md animate-dialog-in items-start gap-3 rounded-2xl bg-nav p-4 text-nav-fg shadow-2xl ring-1 ring-white/10">
+            <Bell className="mt-0.5 size-5 shrink-0 text-nav-accent" aria-hidden />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-slate-300">
+              <p className="text-xs font-medium text-nav-fg/70">
                 {t.notify.newUpdate} · {fmt.stamp(fresh.notice.at)}
               </p>
               <p className="font-semibold">{noticeText(t, fresh.notice).title}</p>
-              <p className="text-sm text-slate-200">{noticeText(t, fresh.notice).body}</p>
+              <p className="text-sm text-nav-fg/85">{noticeText(t, fresh.notice).body}</p>
             </div>
-            <button type="button" onClick={fresh.dismiss} aria-label={t.notify.dismiss} className="rounded-lg p-1 text-slate-300 hover:bg-white/10 hover:text-white">
+            <button type="button" onClick={fresh.dismiss} aria-label={t.notify.dismiss} className="rounded-lg p-1 text-nav-fg/70 hover:bg-white/10 hover:text-nav-fg">
               <X className="size-5" aria-hidden />
             </button>
           </div>

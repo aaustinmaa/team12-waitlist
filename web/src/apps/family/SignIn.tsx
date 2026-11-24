@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { HeartHandshake } from "lucide-react";
+import { ArrowRight, HeartHandshake, Loader2 } from "lucide-react";
 import { btn, Card } from "../../components/ui";
 import { DEMO_FAMILIES } from "../../platform/clinics";
 import { usePlatform } from "../../platform/store";
@@ -61,15 +61,23 @@ export function FamilySignIn() {
               <span className="text-sm font-medium text-slate-800">{ft.contactLabel}</span>
               <input
                 value={contact}
-                onChange={(e) => setContact(e.target.value)}
+                onChange={(e) => {
+                  setContact(e.target.value);
+                  if (error) setError(null);
+                }}
                 autoComplete="email"
                 inputMode="email"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-teal-500"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 outline-none focus:border-teal-500"
               />
               <span className="mt-1 block text-xs text-slate-500">{ft.contactHint}</span>
             </label>
-            {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+            {error && (
+              <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800 ring-1 ring-inset ring-rose-200">
+                {error}
+              </p>
+            )}
             <button type="submit" disabled={!contact.trim() || busy} className={btn("primary", "w-full py-2.5")}>
+              {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {ft.sendCode}
             </button>
           </form>
@@ -79,23 +87,46 @@ export function FamilySignIn() {
             <label className="block">
               <span className="text-sm font-medium text-slate-800">{ft.codeLabel}</span>
               <input
+                autoFocus
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/\D/g, "").slice(0, 8));
+                  if (error) setError(null);
+                }}
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-center font-mono text-2xl tracking-[0.4em] outline-none focus:border-teal-500"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-center font-mono text-2xl tracking-[0.4em] text-slate-900 outline-none focus:border-teal-500"
               />
             </label>
-            {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+            {error && (
+              <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800 ring-1 ring-inset ring-rose-200">
+                {error}
+              </p>
+            )}
             <button type="submit" disabled={code.length < 6 || busy} className={btn("primary", "w-full py-2.5")}>
+              {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {ft.verify}
             </button>
             <div className="flex flex-wrap justify-between gap-2 text-sm">
-              <button type="button" onClick={() => setSent(false)} className="font-medium text-teal-700 underline underline-offset-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSent(false);
+                  setError(null);
+                }}
+                className="font-medium text-teal-700 underline underline-offset-2"
+              >
                 {ft.useOther}
               </button>
               {!HOSTED && latestCode && (
-                <button type="button" onClick={() => setCode(latestCode)} className="text-slate-500 underline underline-offset-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCode(latestCode);
+                    setError(null);
+                  }}
+                  className="text-slate-500 underline underline-offset-2 hover:text-slate-800"
+                >
                   Demo: fill code from inbox
                 </button>
               )}
@@ -110,23 +141,32 @@ export function FamilySignIn() {
           <p className="font-medium text-slate-600">No referral of your own? Try a demo family</p>
           <p className="mt-1 text-xs text-slate-500">Synthetic data: two children at Maple Grove and one at Lakeshore ({DEMO_FAMILY.email}).</p>
           <button type="button" onClick={tryDemo} disabled={busy} className={btn("outline", "mt-3 w-full")}>
+            {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
             Open the demo family
           </button>
         </div>
       ) : (
-      <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
-        <p className="font-medium text-slate-600">{ft.demoTry}</p>
-        <ul className="mt-2 space-y-2">
-          {DEMO_FAMILIES.map((f) => (
-            <li key={f.contact}>
-              <button type="button" onClick={() => send(undefined, f.contact)} className="font-mono font-medium text-teal-700 underline underline-offset-2">
-                {f.contact}
-              </button>
-              <span className="block text-xs text-slate-500">{f.note}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
+          <p className="font-medium text-slate-600">{ft.demoTry}</p>
+          <ul className="mt-2.5 space-y-1">
+            {DEMO_FAMILIES.map((f) => (
+              <li key={f.contact}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => send(undefined, f.contact)}
+                  className="group flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left hover:bg-slate-100 disabled:opacity-60"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-mono font-medium text-teal-700 group-hover:underline group-hover:underline-offset-2">{f.contact}</span>
+                    <span className="block text-xs text-slate-500">{f.note}</span>
+                  </span>
+                  <ArrowRight className="size-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-700" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

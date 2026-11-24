@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Building2, FlaskConical, Sparkles, Users } from "lucide-react";
-import { btn, Card, CardHeading } from "../../components/ui";
+import { Building2, Eye, EyeOff, FlaskConical, Sparkles, Users } from "lucide-react";
+import { btn, Card, CardHeading, SuccessNote } from "../../components/ui";
 import { DEFAULT_GEMINI_MODEL } from "../../ingest/gemini";
 import { CAN, ROLE_LABEL, STAFF, clinicSetup } from "../../platform/clinics";
 import { useClinicId, usePlatform } from "../../platform/store";
@@ -12,8 +12,11 @@ export function SettingsPage() {
   const setup = clinicSetup(clinicId)!;
   const isAdmin = !!p.staff && CAN.manageSettings(p.staff.role);
   const [key, setKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
   const [model, setModel] = useState(p.state.ai.geminiModel || DEFAULT_GEMINI_MODEL);
+  const [aiSaved, setAiSaved] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -72,24 +75,51 @@ export function SettingsPage() {
           <div className="mt-4 space-y-3">
             <label className="block text-sm">
               <span className="font-medium text-slate-800">Gemini API key</span>
-              <input
-                type="password"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-                placeholder={p.state.ai.geminiKey ? "A key is saved. Paste a new one to replace it." : "Paste a key from Google AI Studio"}
-                autoComplete="off"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none focus:border-teal-500"
-              />
+              <span className="relative mt-1 block">
+                <input
+                  type={showKey ? "text" : "password"}
+                  value={key}
+                  onChange={(e) => {
+                    setKey(e.target.value);
+                    setAiSaved(null);
+                  }}
+                  placeholder={p.state.ai.geminiKey ? "A key is saved. Paste a new one to replace it." : "Paste a key from Google AI Studio"}
+                  autoComplete="off"
+                  className="w-full rounded-lg border border-slate-300 bg-white py-2 pe-10 ps-3 font-mono text-sm text-slate-900 outline-none focus:border-teal-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((v) => !v)}
+                  aria-label={showKey ? "Hide API key" : "Show API key"}
+                  className="absolute end-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                >
+                  {showKey ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+                </button>
+              </span>
             </label>
             <label className="block text-sm">
               <span className="font-medium text-slate-800">Model</span>
-              <input value={model} onChange={(e) => setModel(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none focus:border-teal-500" />
+              <input
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value);
+                  setAiSaved(null);
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 outline-none focus:border-teal-500"
+              />
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
+                type="button"
                 onClick={() => {
-                  if (key.trim()) p.setAi({ geminiKey: key.trim(), geminiModel: model.trim() || DEFAULT_GEMINI_MODEL });
-                  else p.setAi({ geminiModel: model.trim() || DEFAULT_GEMINI_MODEL });
+                  const nextModel = model.trim() || DEFAULT_GEMINI_MODEL;
+                  if (key.trim()) {
+                    p.setAi({ geminiKey: key.trim(), geminiModel: nextModel });
+                    setAiSaved("API key and model saved.");
+                  } else {
+                    p.setAi({ geminiModel: nextModel });
+                    setAiSaved("Model setting saved.");
+                  }
                   setKey("");
                 }}
                 className={btn("primary")}
@@ -97,10 +127,18 @@ export function SettingsPage() {
                 Save
               </button>
               {p.state.ai.geminiKey && (
-                <button onClick={() => p.setAi({ geminiKey: "" })} className={btn("outline")}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    p.setAi({ geminiKey: "" });
+                    setAiSaved("API key removed. Falling back to matching rules.");
+                  }}
+                  className={btn("outline")}
+                >
                   Remove key
                 </button>
               )}
+              <span role="status">{aiSaved && <SuccessNote>{aiSaved}</SuccessNote>}</span>
             </div>
             <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
               Prototype only: the key is kept in this browser. In the hosted version it lives on the server (a Supabase secret) and the browser never sees it. Google may use prompts sent with a free-tier key to improve its products, which is one more reason only masked
@@ -120,22 +158,34 @@ export function SettingsPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-slate-700">Reset all demo data?</span>
               <button
+                type="button"
                 onClick={() => {
                   p.resetDemo();
                   setConfirmReset(false);
+                  setResetDone(true);
                 }}
                 className={btn("dark")}
               >
                 Yes, reset
               </button>
-              <button onClick={() => setConfirmReset(false)} className={btn("outline")}>
+              <button type="button" onClick={() => setConfirmReset(false)} className={btn("outline")}>
                 Cancel
               </button>
             </div>
           ) : (
-            <button onClick={() => setConfirmReset(true)} className={btn("outline", "mt-3")}>
-              Reset demo data
-            </button>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetDone(false);
+                  setConfirmReset(true);
+                }}
+                className={btn("outline")}
+              >
+                Reset demo data
+              </button>
+              <span role="status">{resetDone && <SuccessNote>Demo data reset to the starting state.</SuccessNote>}</span>
+            </div>
           )}
         </Card>
       )}
