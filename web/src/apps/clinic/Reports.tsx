@@ -1,6 +1,23 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
-import { ShieldCheck } from "lucide-react";
+import {
+  Activity,
+  ArrowLeftRight,
+  Baby,
+  CalendarCheck,
+  Clock,
+  Download,
+  FileSpreadsheet,
+  Inbox,
+  Info,
+  Printer,
+  ShieldCheck,
+  Share2,
+  Target,
+  Timer,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import type { ClinicView } from "../../lib/api";
 import { downloadCsv, toCsv } from "../../lib/csv";
 import { fmtLong, fmtShort } from "../../lib/dates";
@@ -22,7 +39,7 @@ import {
   type Quarter,
 } from "../../lib/reports";
 import { BarChart, C, Legend, RangeChart, TableView, TimeChart, type BarPoint, type TimePoint } from "../../components/charts";
-import { Card, Chip } from "../../components/ui";
+import { btn, Card, CardHeading, Chip, IconBadge, METRIC, MetricKey, StatCard, SuccessNote } from "../../components/ui";
 import { useClinicView } from "../../platform/store";
 import { NoDataYet } from "./ClinicShell";
 
@@ -61,6 +78,13 @@ function ReportsBody({ v }: { v: ClinicView }) {
     if (quarter.partial) return "Quarter in progress";
     return before === undefined ? "" : `${signed(now - before)} ${vs}`;
   };
+  /** Arrow for a change since last quarter. `upIsGood`: true, false, or null when neither way is good or bad. */
+  const trendOf = (now: number | undefined, before: number | undefined, upIsGood: boolean | null) => {
+    if (quarter.partial || now === undefined || before === undefined) return {};
+    const trend = now > before ? "up" : now < before ? "down" : "flat";
+    const good = trend === "flat" || upIsGood === null ? null : (trend === "up") === upIsGood;
+    return { trend, good } as const;
+  };
 
   const weeklyPoints: TimePoint[] = weekly.map((w) => ({ date: w.date, values: { total: w.waiting + w.onHold, onHold: w.onHold } }));
   const flowBars: BarPoint[] = monthly.map((mm, i) => ({
@@ -77,7 +101,7 @@ function ReportsBody({ v }: { v: ClinicView }) {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div>
         <div className="flex flex-wrap items-center gap-2 print:hidden">
-          <Chip tone="rose" icon={<ShieldCheck className="size-3.5" aria-hidden />}>Staff only</Chip>
+          <Chip tone="teal" icon={<ShieldCheck className="size-3.5" aria-hidden />}>Staff only</Chip>
           <span className="text-sm text-slate-500">Intake team · {CLINIC.name}</span>
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Waitlist report · {quarter.label}</h1>
@@ -105,6 +129,9 @@ function ReportsBody({ v }: { v: ClinicView }) {
           </select>
         </label>
         <p className="text-sm text-slate-500">Every number, chart and download on this page follows the quarter you pick.</p>
+        <div className="sm:ms-auto">
+          <MetricKey />
+        </div>
       </div>
 
       <RightNow now={now} />
@@ -112,9 +139,24 @@ function ReportsBody({ v }: { v: ClinicView }) {
       <DownloadCard quarter={quarter} />
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        <Tile label="Referrals received" value={String(s.referrals)} sub={countDelta(s.referrals, prev?.referrals)} />
-        <Tile label="First assessments" value={String(s.assessed)} sub={countDelta(s.assessed, prev?.assessed)} />
-        <Tile
+        {/* Colour by kind of number (children, weeks, accuracy); the arrow says which way it moved and whether that is good news. */}
+        <StatCard
+          icon={Inbox}
+          label="Referrals received"
+          value={s.referrals}
+          sub={countDelta(s.referrals, prev?.referrals)}
+          {...trendOf(s.referrals, prev?.referrals, null)}
+        />
+        <StatCard
+          icon={CalendarCheck}
+          label="First assessments"
+          value={s.assessed}
+          sub={countDelta(s.assessed, prev?.assessed)}
+          {...trendOf(s.assessed, prev?.assessed, true)}
+        />
+        <StatCard
+          icon={Clock}
+          kind="wait"
           label="Median wait to first assessment"
           value={s.medianWait === null ? "–" : `${s.medianWait.toFixed(1)} weeks`}
           sub={
@@ -122,18 +164,23 @@ function ReportsBody({ v }: { v: ClinicView }) {
               ? `${signed(round1(s.medianWait - prev.medianWait))} wk ${vs}`
               : ""
           }
+          {...trendOf(s.medianWait == null ? undefined : round1(s.medianWait), prev?.medianWait == null ? undefined : round1(prev.medianWait), false)}
           note={
             s.medianWaitExcludingHolds !== null && s.assessedAfterHold > 0
               ? `${s.medianWaitExcludingHolds.toFixed(1)} weeks excluding time on hold (${s.assessedAfterHold} of ${s.assessed} had a hold)`
               : ""
           }
         />
-        <Tile
+        <StatCard
+          icon={Users}
           label={quarter.partial ? `On the waitlist on ${fmtShort(quarter.last)}` : "On the waitlist at quarter end"}
-          value={String(s.waitlistEnd)}
+          value={s.waitlistEnd}
           sub={`${s.onHoldEnd} on hold${prev && !quarter.partial ? ` · ${signed(s.waitlistEnd - prev.waitlistEnd)} ${vs}` : ""}`}
+          {...(quarter.partial ? {} : trendOf(s.waitlistEnd, prev?.waitlistEnd, false))}
         />
-        <Tile
+        <StatCard
+          icon={Target}
+          kind="quality"
           label="Estimates that held"
           value={insidePct === null ? "–" : `${insidePct}%`}
           sub={s.estimatesChecked ? `${s.estimatesInside} of ${s.estimatesChecked} inside the range` : "No first assessments yet"}
@@ -143,6 +190,7 @@ function ReportsBody({ v }: { v: ClinicView }) {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
         <ChartCard
+          icon={Users}
           title="Waitlist size"
           sub="Referrals on the waitlist each week. A booked referral stays on the list until its appointment."
           legend={
@@ -174,6 +222,7 @@ function ReportsBody({ v }: { v: ClinicView }) {
         </ChartCard>
 
         <ChartCard
+          icon={ArrowLeftRight}
           title="Referrals in and first assessments out"
           sub={`Per month. When the blue bar is taller than the orange one, the waitlist grows. Months in ${quarter.label} are in full colour.`}
           legend={
@@ -210,6 +259,7 @@ function ReportsBody({ v }: { v: ClinicView }) {
         </ChartCard>
 
         <ChartCard
+          icon={Timer}
           title="Wait to first assessment"
           sub="For children assessed each month, from referral to first assessment, holds included."
           legend={
@@ -251,6 +301,7 @@ function ReportsBody({ v }: { v: ClinicView }) {
         </ChartCard>
 
         <ChartCard
+          icon={Target}
           title="Did the estimate hold?"
           sub={`Each column is one child assessed in ${quarter.label}: the range the family would have seen once intake was complete, and the wait that actually followed (weeks from that date).`}
           legend={
@@ -301,12 +352,12 @@ function ReportsBody({ v }: { v: ClinicView }) {
           )}
         </ChartCard>
 
-        <BreakdownCard title="By referral source" rows={bySource} quarter={quarter} />
-        <BreakdownCard title="By age group" rows={byAge} quarter={quarter} />
+        <BreakdownCard icon={Share2} title="By referral source" rows={bySource} quarter={quarter} />
+        <BreakdownCard icon={Baby} title="By age group" rows={byAge} quarter={quarter} />
       </div>
 
       <Card className="mt-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">How these numbers are counted</h2>
+        <CardHeading icon={Info}>How these numbers are counted</CardHeading>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
           <li>Wait to first assessment runs from the day the clinic logged the referral to the first speech-language assessment, in calendar weeks. Holds are included.</li>
           <li>A referral is on the waitlist from the day it is logged until its first assessment or until it is withdrawn.</li>
@@ -342,8 +393,9 @@ function WaitNumber({ label, value }: { label: string; value: number | null }) {
 function RightNow({ now }: { now: ReturnType<typeof snapshot> }) {
   return (
     <section aria-labelledby="right-now" className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm break-inside-avoid sm:p-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="right-now" className="text-lg font-semibold text-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="right-now" className="flex items-center gap-3 text-lg font-semibold text-slate-900">
+          <IconBadge icon={Activity} />
           Right now
         </h2>
         <p className="text-sm text-slate-500">As of {fmtLong(now.date)} · not affected by the quarter you pick</p>
@@ -375,7 +427,7 @@ function RightNow({ now }: { now: ReturnType<typeof snapshot> }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
             <p className="text-sm font-medium text-slate-700">Wait to first assessment, last 90 days</p>
-            <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{now.recent.median === null ? "–" : `${now.recent.median.toFixed(1)} weeks`}</p>
+            <p className={`mt-1 text-3xl font-semibold tracking-tight ${METRIC.wait.value}`}>{now.recent.median === null ? "–" : `${now.recent.median.toFixed(1)} weeks`}</p>
             <p className="text-sm text-slate-500">median, {now.recent.count} children assessed since {fmtShort(now.recent.from)}</p>
             <p className="mt-2 text-sm text-slate-700">
               9 in 10 within <span className="font-semibold tabular-nums">{wk(now.recent.p90)}</span> · range{" "}
@@ -386,7 +438,7 @@ function RightNow({ now }: { now: ReturnType<typeof snapshot> }) {
           </div>
           <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
             <p className="text-sm font-medium text-slate-700">Children still waiting have waited</p>
-            <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{now.waitedMedian === null ? "–" : `${now.waitedMedian.toFixed(1)} weeks`}</p>
+            <p className={`mt-1 text-3xl font-semibold tracking-tight ${METRIC.wait.value}`}>{now.waitedMedian === null ? "–" : `${now.waitedMedian.toFixed(1)} weeks`}</p>
             <p className="text-sm text-slate-500">median so far, holds included</p>
             <p className="mt-2 text-sm text-slate-700">
               Longest so far <span className="font-semibold tabular-nums">{wk(now.waitedLongest)}</span>
@@ -417,7 +469,10 @@ function DownloadCard({ quarter }: { quarter: Quarter }) {
 
   return (
     <Card className="mt-5 print:hidden">
-      <h2 className="text-lg font-semibold text-slate-900">Download this report</h2>
+      <h2 className="flex items-center gap-3 text-lg font-semibold text-slate-900">
+        <IconBadge icon={Download} />
+        Download this report
+      </h2>
       <p className="mt-1 text-sm text-slate-600">
         Three ways to share these numbers with your manager or put them in your own report. Files use referral IDs only, never names.
       </p>
@@ -446,9 +501,9 @@ function DownloadCard({ quarter }: { quarter: Quarter }) {
       </ul>
       <p role="status" className="mt-3 min-h-5 text-sm text-slate-600">
         {saved && (
-          <>
-            Downloaded <span className="font-medium text-slate-900">{saved}</span>. Look in your Downloads folder.
-          </>
+          <SuccessNote>
+            Downloaded <span className="font-medium">{saved}</span>. Look in your Downloads folder.
+          </SuccessNote>
         )}
       </p>
     </Card>
@@ -456,52 +511,67 @@ function DownloadCard({ quarter }: { quarter: Quarter }) {
 }
 
 function DownloadOption({ title, kind, body, button, onClick }: { title: string; kind: string; body: string; button: string; onClick: () => void }) {
+  const Icon = kind.startsWith("PDF") ? Printer : FileSpreadsheet;
   return (
-    <li className="flex flex-col rounded-xl border border-slate-200 p-4">
-      <h3 className="font-semibold text-slate-900">{title}</h3>
-      <p className="mt-0.5 text-xs font-medium text-slate-500">{kind}</p>
-      <p className="mt-2 flex-1 text-sm text-slate-600">{body}</p>
-      <button
-        onClick={onClick}
-        className="mt-3 rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
-      >
+    <li className="flex flex-col rounded-xl border border-slate-200 p-4 hover:border-teal-200 hover:bg-teal-50/30">
+      <div className="flex items-start gap-3">
+        <IconBadge icon={Icon} tone="count" />
+        <div className="min-w-0">
+          <h3 className="font-semibold text-slate-900">{title}</h3>
+          <p className="mt-0.5 text-xs font-medium text-slate-500">{kind}</p>
+        </div>
+      </div>
+      <p className="mt-3 flex-1 text-sm text-slate-600">{body}</p>
+      <button onClick={onClick} className={btn("primary", "mt-3")}>
+        <Icon className="size-4" aria-hidden />
         {button}
       </button>
     </li>
   );
 }
 
-function Tile({ label, value, sub, note, className = "" }: { label: string; value: string; sub: string; note?: string; className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-slate-200 bg-white p-4 break-inside-avoid ${className}`}>
-      <p className="text-sm text-slate-600">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
-      {note && <p className="mt-1.5 border-t border-slate-100 pt-1.5 text-xs text-slate-600">{note}</p>}
-    </div>
-  );
-}
-
-function ChartCard({ title, sub, legend, children, className = "" }: { title: string; sub: string; legend: ReactNode; children: ReactNode; className?: string }) {
+function ChartCard({
+  icon,
+  title,
+  sub,
+  legend,
+  children,
+  className = "",
+}: {
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+  legend: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <Card className={`min-w-0 break-inside-avoid ${className}`}>
-      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-      <p className="mt-0.5 text-sm text-slate-500">{sub}</p>
-      <div className="mb-2 mt-3">{legend}</div>
+      <div className="flex items-start gap-3">
+        <IconBadge icon={icon} />
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+          <p className="mt-0.5 text-sm text-slate-500">{sub}</p>
+        </div>
+      </div>
+      <div className="mb-2 mt-4">{legend}</div>
       {children}
     </Card>
   );
 }
 
-function BreakdownCard({ title, rows, quarter }: { title: string; rows: ReturnType<typeof breakdown>; quarter: Quarter }) {
+function BreakdownCard({ icon, title, rows, quarter }: { icon: LucideIcon; title: string; rows: ReturnType<typeof breakdown>; quarter: Quarter }) {
   return (
     <Card className="min-w-0 break-inside-avoid !p-0">
-      <div className="p-5 pb-3 sm:p-6 sm:pb-3">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <p className="mt-0.5 text-sm text-slate-500">{quarter.label}</p>
+      <div className="flex items-start gap-3 p-5 pb-3 sm:p-6 sm:pb-3">
+        <IconBadge icon={icon} />
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+          <p className="mt-0.5 text-sm text-slate-500">{quarter.label}</p>
+        </div>
       </div>
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 text-xs text-slate-500">
+        <thead className="border-y border-slate-200 bg-slate-50 text-[0.6875rem] uppercase tracking-wider text-slate-500">
           <tr>
             <th className="px-5 py-2 font-medium sm:px-6"> </th>
             <th className="px-2 py-2 text-right font-medium">Referrals</th>
@@ -511,11 +581,11 @@ function BreakdownCard({ title, rows, quarter }: { title: string; rows: ReturnTy
         </thead>
         <tbody className="divide-y divide-slate-100">
           {rows.map((r) => (
-            <tr key={r.group}>
-              <td className="px-5 py-2 text-slate-800 sm:px-6">{r.group}</td>
-              <td className="px-2 py-2 text-right tabular-nums">{r.referrals}</td>
-              <td className="px-2 py-2 text-right tabular-nums">{r.assessed}</td>
-              <td className="whitespace-nowrap px-5 py-2 text-right tabular-nums sm:px-6">{wk(r.medianWait)}</td>
+            <tr key={r.group} className="transition-colors duration-150 hover:bg-teal-50/50">
+              <td className="px-5 py-2.5 text-slate-800 sm:px-6">{r.group}</td>
+              <td className="px-2 py-2.5 text-right font-medium text-slate-900">{r.referrals}</td>
+              <td className="px-2 py-2.5 text-right font-medium text-slate-900">{r.assessed}</td>
+              <td className={`whitespace-nowrap px-5 py-2.5 text-right font-medium sm:px-6 ${METRIC.wait.value}`}>{wk(r.medianWait)}</td>
             </tr>
           ))}
         </tbody>

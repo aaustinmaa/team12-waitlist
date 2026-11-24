@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { Bell, ChevronDown, Mail, MessageSquare, MonitorSmartphone } from "lucide-react";
+import { Bell, CheckCircle2, ChevronDown, Mail, MessageSquare, MonitorSmartphone } from "lucide-react";
 import { contactDetails, normalize, type ContactField } from "../../lib/contact";
 import { useDemo } from "../../lib/demoState";
 import { useI18n, type Dict } from "../../lib/i18n";
@@ -76,7 +76,7 @@ export function UpdatesCard({ data, id, readOnly = false }: { data: FamilyReferr
 
   return (
     <Card id={id} tour="notify" className="scroll-mt-20">
-      <CardHeading id={id ? `${id}-heading` : undefined}>{t.notify.heading}</CardHeading>
+      <CardHeading icon={Bell} id={id ? `${id}-heading` : undefined}>{t.notify.heading}</CardHeading>
       <p className="mt-2 text-sm text-slate-600">{t.notify.when}</p>
 
       {/* Closed: where updates go now. */}
@@ -288,7 +288,8 @@ function ChannelRow({
         </form>
       )}
       {saved && !editing && (
-        <p role="status" className="mt-1 ps-8 text-xs font-medium text-emerald-700">
+        <p role="status" className="mt-1 flex animate-fade-in items-center gap-1 ps-8 text-xs font-medium text-emerald-700">
+          <CheckCircle2 className="size-3.5" aria-hidden />
           {t.notify.saved}
         </p>
       )}

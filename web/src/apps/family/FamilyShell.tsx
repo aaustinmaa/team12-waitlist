@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router";
 import { Languages, Mail, X } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
+import { PageSkeleton } from "../../components/ui";
 import { LANGS, useI18n, type LangCode } from "../../lib/i18n";
 import { maskContact, usePlatform } from "../../platform/store";
 import { HOSTED } from "../../platform/hosted";
@@ -22,14 +23,14 @@ export function FamilyShell() {
     window.scrollTo(0, 0);
   }, [pathname]);
   const signedIn = !!p.state.familySession;
-  if (HOSTED && p.state.sync?.loading) return <p className="px-4 py-24 text-center text-slate-500">Loading…</p>;
+  if (HOSTED && p.state.sync?.loading) return <PageSkeleton />;
   if (!signedIn && pathname !== "/") return <Navigate to="/" replace />;
   if (signedIn && pathname === "/") return <Navigate to="/my" replace />;
 
   return (
-    <div className="flex min-h-dvh flex-col" dir={dir} lang={lang}>
+    <div className="flex min-h-dvh flex-col bg-wash" dir={dir} lang={lang}>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3.5 sm:px-6">
           <Link to={signedIn ? "/my" : "/"} className="shrink-0">
             <Brand sub={ft.appSub} />
           </Link>
@@ -59,8 +60,13 @@ export function FamilyShell() {
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        <Outlet />
+      <main className="relative isolate flex-1">
+        {/* The family app is warmer than the staff portal: a soft wash of brand blue fading into a plain, hue-free light grey behind the top of each page. */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-linear-to-b from-teal-50/80 to-transparent print:hidden" />
+        {/* Keyed by page so each new page fades in instead of popping. */}
+        <div key={pathname} className="animate-page-in">
+          <Outlet />
+        </div>
       </main>
       <DemoFooter />
       {!HOSTED && <DemoInbox />}
@@ -105,9 +111,9 @@ export function DemoInbox() {
           </ul>
         </div>
       ) : (
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl">
           <Mail className="size-4" aria-hidden /> {ft.inbox.title}
-          {p.state.inbox.length > 0 && <span className="rounded-full bg-teal-500 px-1.5 text-xs">{p.state.inbox.length}</span>}
+          {p.state.inbox.length > 0 && <span className="rounded-full bg-teal-500 px-1.5 text-xs text-white dark:text-slate-950">{p.state.inbox.length}</span>}
         </button>
       )}
     </div>

@@ -4,12 +4,15 @@ import {
   CalendarCheck,
   ChevronDown,
   CircleHelp,
+  ClipboardList,
+  Hourglass,
   Clock,
   Info,
   Mail,
   MessageCircleQuestion,
   PauseCircle,
   Phone,
+  Route,
   Sparkles,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -72,7 +75,7 @@ function StatusCard({ data, compact }: { data: FamilyReferralResponse; compact: 
   return (
     <Card tour="status">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <CardHeading>{t.status.heading}</CardHeading>
+        <CardHeading icon={ClipboardList}>{t.status.heading}</CardHeading>
         <Tag icon={<BadgeCheck className="size-3.5" aria-hidden />}>{t.status.confirmed}</Tag>
       </div>
       <div className="mt-4 flex items-start gap-3">
@@ -278,7 +281,7 @@ function EstimateHeader() {
   const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <CardHeading>{t.estimate.heading}</CardHeading>
+      <CardHeading icon={Hourglass}>{t.estimate.heading}</CardHeading>
       <Tag icon={<Sparkles className="size-3.5" aria-hidden />}>{t.estimate.chip}</Tag>
     </div>
   );
@@ -336,7 +339,7 @@ function Journey({ data }: { data: FamilyReferralResponse }) {
 
   return (
     <Card tour="steps">
-      <CardHeading>{t.steps.heading}</CardHeading>
+      <CardHeading icon={Route}>{t.steps.heading}</CardHeading>
       <ol className="mt-4 grid gap-0 sm:grid-cols-4 sm:gap-3">
         {steps.map((s, i) => (
           <li key={s.label} className="relative flex gap-3 pb-5 last:pb-0 sm:flex-col sm:pb-0">
@@ -368,7 +371,7 @@ function ContactCard({ id, referralId, clinic }: { id?: string; referralId: stri
   const { t } = useI18n();
   return (
     <Card id={id} tour="contact" className="scroll-mt-20">
-      <CardHeading id={id ? `${id}-heading` : undefined}>{t.contact.heading}</CardHeading>
+      <CardHeading icon={Phone} id={id ? `${id}-heading` : undefined}>{t.contact.heading}</CardHeading>
       {clinic.name && <p className="mt-3 font-semibold text-slate-900">{clinic.name}</p>}
       <p className="text-sm text-slate-600">{t.contact.team}</p>
       <div className="mt-3 space-y-2">

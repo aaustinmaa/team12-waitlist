@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { btn } from "./ui";
 
 export interface TourStep {
   /** the data-tour name of the part this step points at */
@@ -192,7 +193,7 @@ export function Tour({
               ref={primary}
               type="button"
               onClick={() => (last ? onClose() : setIndex(index + 1))}
-              className="rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800"
+              className={btn("primary")}
             >
               {last ? labels.done : labels.next}
             </button>

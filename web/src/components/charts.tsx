@@ -7,8 +7,8 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent
 import { parseDay } from "../lib/dates";
 
 export const C = {
-  blue: "#2a78d6",
-  orange: "#eb6834",
+  blue: "var(--chart-blue)",
+  orange: "var(--chart-orange)",
   // Chart chrome follows the light/dark theme (variables in index.css).
   rangeFill: "var(--chart-range)",
   band: "var(--chart-band)",

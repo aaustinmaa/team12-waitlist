@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { BadgeCheck, CalendarPlus, Clock, ExternalLink, MapPin, UserRound } from "lucide-react";
+import { BadgeCheck, CalendarCheck, CalendarPlus, Clock, ExternalLink, ListChecks, MapPin, UserRound } from "lucide-react";
 import { downloadIcs, googleCalendarUrl, outlookCalendarUrl, toIcs, type CalEvent } from "../../lib/calendar";
 import { useI18n } from "../../lib/i18n";
 import type { FamilyReferralResponse } from "../../lib/types";
-import { btn, Card, CardHeading, Tag } from "../ui";
+import { btn, Card, CardHeading, SuccessNote, Tag } from "../ui";
 
 function addMinutes(hhmm: string, minutes: number) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -48,7 +48,7 @@ export function AppointmentCard({ data }: { data: FamilyReferralResponse }) {
   if (!a || !events) {
     return (
       <Card tour="appointment">
-        <CardHeading>{t.appointment.beforeTitle}</CardHeading>
+        <CardHeading icon={ListChecks}>{t.appointment.beforeTitle}</CardHeading>
         <BeforeList items={t.appointment.before} />
       </Card>
     );
@@ -64,7 +64,7 @@ export function AppointmentCard({ data }: { data: FamilyReferralResponse }) {
   return (
     <Card tour="appointment">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <CardHeading>{t.appointment.heading}</CardHeading>
+        <CardHeading icon={CalendarCheck}>{t.appointment.heading}</CardHeading>
         <Tag icon={<BadgeCheck className="size-3.5" aria-hidden />}>{t.status.confirmed}</Tag>
       </div>
 
@@ -112,7 +112,7 @@ export function AppointmentCard({ data }: { data: FamilyReferralResponse }) {
           </a>
         </div>
         <p role="status" className="mt-2 text-sm text-slate-600">
-          {saved ? t.appointment.downloaded(saved) : t.appointment.calendarNote}
+          {saved ? <SuccessNote>{t.appointment.downloaded(saved)}</SuccessNote> : t.appointment.calendarNote}
         </p>
       </div>
 

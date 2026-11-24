@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Bell, Compass, X } from "lucide-react";
+import { ArrowLeft, Bell, Compass, Info, X } from "lucide-react";
 import { FamilyReferralView } from "../../components/FamilyReferralView";
 import { browserNotifications, noticeText } from "../../components/family/UpdatesCard";
 import { Tour, type TourStep } from "../../components/Tour";
@@ -164,7 +164,7 @@ function HowEstimated({ v }: { v: ClinicView }) {
   return (
     <Card className="mt-6" id="how-estimated">
       <div dir={dir} lang={lang}>
-        <CardHeading>{ft.how.title}</CardHeading>
+        <CardHeading icon={Info}>{ft.how.title}</CardHeading>
         <p className="mt-2 text-slate-700">{ft.how.body(v.info.name)}</p>
         {v.model.gate.familyVisible && bt.coverage !== null && <p className="mt-2 text-slate-700">{ft.how.held(Math.round(bt.coverage * 100), bt.resolved)}</p>}
         <p className="mt-2 text-sm text-slate-500">{ft.how.gate}</p>

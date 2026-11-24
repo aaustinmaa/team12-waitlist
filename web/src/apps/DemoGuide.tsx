@@ -94,7 +94,7 @@ export function DemoGuide() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <p className="text-sm font-semibold text-teal-700">CS 497 · Early Birds · Prototype V.1</p>
+        <p className="text-sm font-semibold text-teal-700">CS 497 · ClearWait · Prototype V.1</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Wait-time estimates for children's therapy waitlists, learned from each clinic's own data</h1>
         <p className="mt-3 max-w-3xl text-slate-600">
           Two separate apps. Families sign in with a one-time code and see every referral linked to them. Clinic staff sign in to their own clinic's portal, bring in exports from whatever system they use, and see how the estimates were made and checked.

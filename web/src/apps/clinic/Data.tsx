@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { CheckCircle2, CloudDownload, FileUp, Loader2, Sparkles, TriangleAlert } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, CloudDownload, Columns3, Database, FileUp, History, Loader2, RefreshCw, Sparkles, TriangleAlert, Upload } from "lucide-react";
 import { btn, Card, CardHeading, Chip } from "../../components/ui";
 import { PRIORITIES, RECORD_FIELDS, type RecordField } from "../../engine/types";
 import { DATE_FORMATS, type DateFormat } from "../../ingest/dates";
@@ -116,7 +116,7 @@ export function DataPage() {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeading>Current data</CardHeading>
+          <CardHeading icon={Database}>Current data</CardHeading>
           {data ? (
             <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
               <Item label="Data as of" value={fmtLong(data.asOf)} />
@@ -129,7 +129,7 @@ export function DataPage() {
           )}
         </Card>
         <Card>
-          <CardHeading>Automatic sync</CardHeading>
+          <CardHeading icon={RefreshCw}>Automatic sync</CardHeading>
           {setup.syncFeed.length ? (
             <>
               <p className="mt-3 text-sm text-slate-700">
@@ -152,7 +152,7 @@ export function DataPage() {
         <ImportWizard key={file.name + file.via} file={file} onDone={() => setFile(null)} />
       ) : (
         <Card className="mt-6">
-          <CardHeading>Import an export</CardHeading>
+          <CardHeading icon={Upload}>Import an export</CardHeading>
           {canImport ? (
             <>
               <p className="mt-2 text-sm text-slate-600">
@@ -177,13 +177,13 @@ export function DataPage() {
       )}
 
       <Card className="mt-6">
-        <CardHeading>Import history</CardHeading>
+        <CardHeading icon={History}>Import history</CardHeading>
         {history.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">No imports yet.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-slate-500">
+              <thead className="text-[0.6875rem] uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="py-2 pr-3 font-medium">When</th>
                   <th className="py-2 pr-3 font-medium">File</th>
@@ -307,7 +307,7 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
       <Card>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardHeading>Step 1 · Check how the columns were matched</CardHeading>
+            <CardHeading icon={Columns3}>Step 1 · Check how the columns were matched</CardHeading>
             <p className="mt-2 text-sm text-slate-700">
               <span className="font-mono">{file.name}</span> · {analysis.table.rows.length} rows · {headers.length} columns ·{" "}
               {recipe.shape === "per_event" ? "one row per event" : "one row per referral"} · dates {recipe.date_format}
@@ -433,7 +433,7 @@ function ImportWizard({ file, onDone }: { file: { name: string; text: string; vi
       </Card>
 
       <Card>
-        <CardHeading>Step 2 · Check the result</CardHeading>
+        <CardHeading icon={ClipboardCheck}>Step 2 · Check the result</CardHeading>
         <div className="mt-3 flex flex-wrap gap-2 text-sm">
           <Chip tone={conv.records.length ? "green" : "rose"} icon={<CheckCircle2 className="size-3.5" aria-hidden />}>
             {conv.records.length} referrals read

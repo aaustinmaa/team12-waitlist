@@ -34,7 +34,7 @@ export function FamilyHome() {
             const range = data.estimate.range_weeks;
             return (
               <li key={`${clinicId}/${data.referral.id}`}>
-                <Link to={`/my/${clinicId}/${encodeURIComponent(data.referral.id)}`} className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-teal-300 sm:p-5">
+                <Link to={`/my/${clinicId}/${encodeURIComponent(data.referral.id)}`} className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md active:translate-y-0 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm text-slate-500">{v.info.name}</p>
@@ -43,7 +43,7 @@ export function FamilyHome() {
                         {ft.ref} {data.referral.id}
                       </p>
                     </div>
-                    <ChevronRight className="mt-1 size-5 shrink-0 text-slate-400 rtl:rotate-180" aria-hidden />
+                    <ChevronRight className="mt-1 size-5 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-teal-700 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" aria-hidden />
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Chip tone={tone}>{label}</Chip>
