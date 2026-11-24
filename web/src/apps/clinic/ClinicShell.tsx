@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { ArrowRight, BarChart3, ChevronRight, Database, Eye, EyeOff, Gauge, ListOrdered, LogOut, ScrollText, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
+import { BarChart3, ChevronRight, Database, Eye, EyeOff, Gauge, ListOrdered, LogOut, ScrollText, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { btn, Card, EmptyState, PageSkeleton, SkipLink, useScrolled } from "../../components/ui";
 import { CAN, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF, clinicSetup, type Role } from "../../platform/clinics";
@@ -261,16 +261,12 @@ function ClinicSignIn() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const signInWith = async (em: string, pw: string) => {
-    setBusy(true);
-    setError(null);
-    const err = await p.signInStaff(em, pw);
-    setError(err);
-    setBusy(false);
-  };
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    await signInWith(email, password);
+    setBusy(true);
+    setError(null);
+    setError(await p.signInStaff(email, password));
+    setBusy(false);
   };
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
@@ -331,28 +327,24 @@ function ClinicSignIn() {
       </Card>
       <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4 text-sm">
         <p className="font-medium text-slate-600">
-          Demo accounts · click any row to sign in <span className="font-normal text-slate-500">(password <span className="font-mono">{DEMO_STAFF_PASSWORD}</span>)</span>
+          Demo accounts · password <span className="font-mono">{DEMO_STAFF_PASSWORD}</span>
         </p>
-        <ul className="mt-2.5 space-y-1">
+        <ul className="mt-2 space-y-1">
           {STAFF.map((s) => (
             <li key={s.email}>
               <button
                 type="button"
-                disabled={busy}
                 onClick={() => {
                   setEmail(s.email);
                   setPassword(DEMO_STAFF_PASSWORD);
-                  void signInWith(s.email, DEMO_STAFF_PASSWORD);
+                  setError(null);
                 }}
-                className="group flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left hover:bg-slate-100 disabled:opacity-60"
+                className="group w-full rounded-xl px-2.5 py-2 text-left hover:bg-slate-100"
               >
-                <span className="min-w-0">
-                  <span className="block truncate font-mono font-medium text-teal-700 group-hover:underline group-hover:underline-offset-2">{s.email}</span>
-                  <span className="block text-xs text-slate-500">
-                    {clinicSetup(s.clinicId)!.info.name} · {ROLE_LABEL[s.role]}
-                  </span>
+                <span className="block truncate font-mono font-medium text-teal-700 underline decoration-teal-700/40 underline-offset-2 group-hover:decoration-teal-700">{s.email}</span>
+                <span className="block text-xs text-slate-500">
+                  {clinicSetup(s.clinicId)!.info.name} · {ROLE_LABEL[s.role]}
                 </span>
-                <ArrowRight className="size-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-700" aria-hidden />
               </button>
             </li>
           ))}
