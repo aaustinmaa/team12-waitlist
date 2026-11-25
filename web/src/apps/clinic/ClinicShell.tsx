@@ -157,7 +157,7 @@ export function ClinicShell() {
               </Link>
               <div className="ms-auto flex items-center gap-1">
                 <ThemeButton />
-                <button type="button" onClick={p.signOutStaff} className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                <button type="button" onClick={p.signOutStaff} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
                   Sign out
                 </button>
               </div>

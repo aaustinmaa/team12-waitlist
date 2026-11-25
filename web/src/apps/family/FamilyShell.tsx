@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router";
-import { Languages, Mail, X } from "lucide-react";
+import { Languages, LogOut, Mail, X } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { PageSkeleton } from "../../components/ui";
 import { LANGS, useI18n, type LangCode } from "../../lib/i18n";
@@ -36,7 +36,7 @@ export function FamilyShell() {
           </Link>
           <div className="ms-auto flex items-center gap-1">
             <label data-tour="language" className="flex items-center gap-1.5 rounded-lg py-1 ps-2 pe-1 text-sm text-slate-600 ring-1 ring-inset ring-slate-300">
-              <Languages className="size-4 shrink-0" aria-hidden />
+              <Languages className="hidden size-4 shrink-0 sm:block" aria-hidden />
               <span className="sr-only">Language</span>
               <select
                 value={lang}
@@ -52,9 +52,18 @@ export function FamilyShell() {
             </label>
             <ThemeButton />
             {signedIn && (
-              <button type="button" onClick={p.signOutFamily} className="whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100">
-                <span className="hidden sm:inline">{maskContact(p.state.familySession!.contact)} · </span>
-                {ft.signOut}
+              <button
+                type="button"
+                onClick={p.signOutFamily}
+                title={ft.signOut}
+                className="flex items-center whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                {/* Phones: an icon, so the header fits next to the language and colour switches. */}
+                <LogOut className="size-4 sm:hidden" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  <span className="hidden sm:inline">{maskContact(p.state.familySession!.contact)} · </span>
+                  {ft.signOut}
+                </span>
               </button>
             )}
           </div>
