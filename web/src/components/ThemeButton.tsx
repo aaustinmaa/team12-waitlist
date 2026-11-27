@@ -10,7 +10,7 @@ const OPTIONS: { value: ThemeChoice; icon: typeof Sun; label: string }[] = [
 export function ThemeButton() {
   const theme = useTheme();
   return (
-    <div role="group" aria-label="Colours" className="flex shrink-0 items-center rounded-lg bg-slate-100 p-0.5">
+    <div role="group" aria-label="Colours" className="flex shrink-0 select-none items-center rounded-lg bg-slate-100 p-0.5 ring-1 ring-inset ring-slate-200/70">
       {OPTIONS.map(({ value, icon: Icon, label }) => {
         const on = theme.choice === value;
         return (
@@ -20,8 +20,8 @@ export function ThemeButton() {
             onClick={() => theme.set(value)}
             aria-pressed={on}
             title={`${label} mode`}
-            className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition-colors ${
-              on ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+              on ? "bg-white text-slate-900 shadow-xs" : "text-slate-500 hover:text-slate-900"
             }`}
           >
             <Icon className="size-4" aria-hidden />

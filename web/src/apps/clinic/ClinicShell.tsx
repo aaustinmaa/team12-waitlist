@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { BarChart3, ChevronRight, Database, Gauge, ListOrdered, LogOut, ScrollText, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
+import { BarChart3, ChevronRight, Database, Eye, EyeOff, Gauge, ListOrdered, LogOut, ScrollText, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
-import { btn, Card, EmptyState, PageSkeleton } from "../../components/ui";
+import { btn, Card, EmptyState, PageSkeleton, SkipLink, useScrolled } from "../../components/ui";
 import { CAN, DEMO_STAFF_PASSWORD, ROLE_LABEL, STAFF, clinicSetup, type Role } from "../../platform/clinics";
 import { ClinicScope, usePlatform } from "../../platform/store";
 import { HOSTED } from "../../platform/hosted";
@@ -29,11 +29,12 @@ const initials = (name: string) =>
 export function ClinicShell() {
   const { pathname } = useLocation();
   const p = usePlatform();
+  const staff = p.staff;
+  const setup = staff ? clinicSetup(staff.clinicId) : null;
+  const scrolled = useScrolled();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-  const staff = p.staff;
-  const setup = staff ? clinicSetup(staff.clinicId) : null;
   const nav = staff ? NAV.filter((n) => n.show(staff.role)) : [];
   const current = nav.find((n) => pathname.startsWith(n.to));
 
@@ -59,12 +60,17 @@ export function ClinicShell() {
     </>
   );
 
-  // Signed out: a plain header, no sections to show yet.
+  // Signed out: fixed top header so vertical rubber-band bounce moves only the grey content underneath.
   if (!staff || !setup) {
     return (
-      <div className="flex min-h-dvh flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3.5 sm:px-6">
+      <div className="flex min-h-dvh flex-col pt-16 print:pt-0">
+        <SkipLink />
+        <header
+          className={`fixed inset-x-0 top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 print:hidden ${
+            scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
+          }`}
+        >
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
             <Link to="/" className="shrink-0">
               <Brand sub="Clinic portal" />
             </Link>
@@ -73,25 +79,29 @@ export function ClinicShell() {
             </div>
           </div>
         </header>
-        <main className="flex-1">{body}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+          {body}
+        </main>
         <DemoFooter />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh">
-      {/* Desktop: a fixed sidebar so the sections are always in view. */}
-      <aside className="sticky top-0 z-40 hidden h-dvh w-64 shrink-0 flex-col bg-nav text-nav-fg lg:flex print:hidden">
+    <div className="min-h-dvh">
+      <SkipLink />
+      {/* Desktop: fixed sidebar; the grey page scrolls on window so native vertical rubber-band bounce stays intact while chrome never moves. */}
+      <aside className="fixed inset-y-0 start-0 z-40 hidden w-64 flex-col bg-nav text-nav-fg lg:flex print:hidden">
         <Link to="/waitlist" className="block px-5 pb-5 pt-6">
           <Brand sub="Clinic portal" onDark />
         </Link>
-        <div className="mx-3 rounded-xl bg-nav-raised px-3 py-2.5">
+        <div className="mx-3 rounded-xl bg-nav-raised px-3 py-2.5 ring-1 ring-inset ring-white/[0.06]">
           <p className="truncate text-sm font-semibold" title={setup.info.name}>
             {setup.info.name}
           </p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-nav-fg/65">
-            <ShieldCheck className="size-3.5 text-nav-accent" aria-hidden /> Staff only · {ROLE_LABEL[staff.role]}
+            <ShieldCheck className="size-3.5 shrink-0 text-nav-accent" aria-hidden />
+            <span className="truncate">Staff only · {ROLE_LABEL[staff.role]}</span>
           </p>
         </div>
 
@@ -128,60 +138,67 @@ export function ClinicShell() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur print:hidden">
-          {/* Desktop: where you are. */}
-          <div className="hidden h-16 items-center gap-3 px-6 lg:flex">
-            <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
-              <span className="truncate text-slate-500">{setup.info.name}</span>
-              {current && (
-                <>
-                  <ChevronRight className="size-4 shrink-0 text-slate-400" aria-hidden />
-                  <span className="flex items-center gap-1.5 font-medium text-slate-900">
-                    <current.icon className="size-4 text-teal-700" aria-hidden />
-                    {current.label}
-                  </span>
-                </>
-              )}
-            </nav>
-            <div className="ms-auto flex items-center gap-2">
-              <ThemeButton />
-            </div>
+      <header
+        className={`fixed inset-x-0 top-0 z-30 border-b border-slate-200 backdrop-blur-md transition-[box-shadow,background-color] duration-200 lg:start-64 print:hidden ${
+          scrolled ? "bg-white/95 shadow-xs" : "bg-white/90"
+        }`}
+      >
+        {/* Desktop: where you are. */}
+        <div className="hidden h-16 items-center gap-3 px-6 lg:flex">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
+            <span className="truncate text-slate-500">{setup.info.name}</span>
+            {current && (
+              <>
+                <ChevronRight className="size-4 shrink-0 text-slate-400" aria-hidden />
+                <span className="flex items-center gap-1.5 font-medium text-slate-900">
+                  <current.icon className="size-4 text-teal-700" aria-hidden />
+                  {current.label}
+                </span>
+              </>
+            )}
+          </nav>
+          <div className="ms-auto flex items-center gap-2">
+            <ThemeButton />
           </div>
+        </div>
 
-          {/* Phone and tablet: brand row plus a scrolling row of sections. */}
-          <div className="lg:hidden">
-            <div className="flex items-center gap-2 px-4 py-3 sm:px-6">
-              <Link to="/waitlist" className="min-w-0 shrink">
-                <Brand sub={setup.info.name} />
-              </Link>
-              <div className="ms-auto flex items-center gap-1">
-                <ThemeButton />
-                <button type="button" onClick={p.signOutStaff} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                  Sign out
-                </button>
-              </div>
+        {/* Phone and tablet: brand row (64px) plus a scrolling row of sections (44px) = 108px total. */}
+        <div className="lg:hidden">
+          <div className="flex h-16 items-center gap-2 px-4 sm:px-6">
+            <Link to="/waitlist" className="min-w-0 shrink">
+              <Brand sub={`${setup.info.name} · ${ROLE_LABEL[staff.role]}`} />
+            </Link>
+            <div className="ms-auto flex items-center gap-1">
+              <ThemeButton />
+              <button type="button" onClick={p.signOutStaff} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                Sign out
+              </button>
             </div>
-            <nav aria-label="Clinic portal" className="flex gap-1 overflow-x-auto px-3 pb-2 sm:px-5">
-              {nav.map((n) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  title={n.hint}
-                  className={({ isActive }) =>
-                    `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
-                      isActive ? "bg-teal-50 text-teal-800 ring-1 ring-inset ring-teal-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    }`
-                  }
-                >
-                  <n.icon className="size-4" aria-hidden />
-                  {n.label}
-                </NavLink>
-              ))}
-            </nav>
           </div>
-        </header>
-        <main className="flex-1">{body}</main>
+          <nav aria-label="Clinic portal" className="no-scrollbar flex h-11 items-center gap-1 overflow-x-auto overscroll-x-contain px-3 pb-1.5 sm:px-5">
+            {nav.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                title={n.hint}
+                className={({ isActive }) =>
+                  `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
+                    isActive ? "bg-teal-50 text-teal-800 ring-1 ring-inset ring-teal-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`
+                }
+              >
+                <n.icon className="size-4" aria-hidden />
+                {n.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <div className="flex min-h-dvh min-w-0 flex-col pt-[108px] lg:ps-64 lg:pt-16 print:ps-0 print:pt-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+          {body}
+        </main>
         <DemoFooter />
       </div>
     </div>
@@ -223,7 +240,7 @@ function SideLink({ item }: { item: (typeof NAV)[number] }) {
           <span
             id={tipId}
             role="tooltip"
-            className="pointer-events-none invisible absolute start-full top-1/2 z-50 ms-3 w-64 -translate-y-1/2 translate-x-1 rounded-xl bg-white p-3 text-start opacity-0 shadow-xl ring-1 ring-slate-200 transition-[opacity,translate,visibility] duration-150 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:visible group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+            className="pointer-events-none invisible absolute start-full top-1/2 z-50 ms-3 w-64 -translate-y-1/2 translate-x-1 rounded-xl bg-white p-3 text-start opacity-0 shadow-xl ring-1 ring-slate-200 transition-[opacity,translate,visibility] duration-150 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100 group-hover:delay-150 group-focus-visible:visible group-focus-visible:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:delay-0"
           >
             <span className="flex items-center gap-2 text-sm font-semibold text-slate-900">
               <Icon className="size-4 text-teal-700" aria-hidden />
@@ -241,11 +258,13 @@ function ClinicSignIn() {
   const p = usePlatform();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setError(null);
     setError(await p.signInStaff(email, password));
     setBusy(false);
   };
@@ -260,14 +279,47 @@ function ClinicSignIn() {
         <form onSubmit={submit} className="space-y-4">
           <label className="block">
             <span className="text-sm font-medium text-slate-800">Work email</span>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" type="email" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-teal-500" />
+            <input
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              autoComplete="username"
+              type="email"
+              placeholder="name@clinic.example"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 outline-none focus:border-teal-500"
+            />
           </label>
           <label className="block">
             <span className="text-sm font-medium text-slate-800">Password</span>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" type="password" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-teal-500" />
+            <span className="relative mt-1 block">
+              <input
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(null);
+                }}
+                autoComplete="current-password"
+                type={showPw ? "text" : "password"}
+                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pe-10 ps-3 text-slate-900 outline-none focus:border-teal-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+                className="absolute end-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              >
+                {showPw ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+              </button>
+            </span>
           </label>
-          {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-          <button type="submit" disabled={busy} className={btn("primary", "w-full py-2.5")}>
+          {error && (
+            <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800 ring-1 ring-inset ring-rose-200">
+              {error}
+            </p>
+          )}
+          <button type="submit" disabled={busy || !email.trim() || !password} className={btn("primary", "w-full py-2.5")}>
             {busy ? "Signing in…" : "Sign in"}
           </button>
           <p className="text-xs text-slate-500">The hosted version adds a second step (an authenticator app code) and can use your clinic's Microsoft 365 sign-in.</p>
@@ -277,7 +329,7 @@ function ClinicSignIn() {
         <p className="font-medium text-slate-600">
           Demo accounts · password <span className="font-mono">{DEMO_STAFF_PASSWORD}</span>
         </p>
-        <ul className="mt-2 space-y-1.5">
+        <ul className="mt-2 space-y-1">
           {STAFF.map((s) => (
             <li key={s.email}>
               <button
@@ -285,10 +337,11 @@ function ClinicSignIn() {
                 onClick={() => {
                   setEmail(s.email);
                   setPassword(DEMO_STAFF_PASSWORD);
+                  setError(null);
                 }}
-                className="group -mx-2 rounded-lg px-2 py-1 text-left hover:bg-slate-100"
+                className="group w-full rounded-xl px-2.5 py-2 text-left hover:bg-slate-100"
               >
-                <span className="font-mono font-medium text-teal-700 underline decoration-teal-700/40 underline-offset-2 group-hover:decoration-teal-700">{s.email}</span>
+                <span className="block truncate font-mono font-medium text-teal-700 underline decoration-teal-700/40 underline-offset-2 group-hover:decoration-teal-700">{s.email}</span>
                 <span className="block text-xs text-slate-500">
                   {clinicSetup(s.clinicId)!.info.name} · {ROLE_LABEL[s.role]}
                 </span>

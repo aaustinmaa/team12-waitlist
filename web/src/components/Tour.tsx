@@ -165,7 +165,7 @@ export function Tour({
         aria-describedby="tour-body"
         dir={dir}
         lang={lang}
-        className="absolute z-50 w-[min(22.5rem,calc(100vw-1.5rem))] rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/10 sm:p-5"
+        className="absolute z-50 w-[min(22.5rem,calc(100vw-1.5rem))] animate-fade-in rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-slate-200 sm:p-5"
         style={layout ? { top: layout.pop.top, left: layout.pop.left } : { top: 0, left: 0, visibility: "hidden" }}
       >
         <p className="text-xs font-medium text-slate-500">{labels.step(index + 1, available.length)}</p>

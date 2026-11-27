@@ -20,6 +20,8 @@ function saved(): ThemeChoice {
 function apply(choice: ThemeChoice) {
   const dark = choice === "dark";
   const root = document.documentElement;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", dark ? "#181d25" : "#ffffff");
   if (root.classList.contains("dark") === dark) return;
   const swap = () => root.classList.toggle("dark", dark);
   // Cross-fade the whole page where the browser can, so the switch doesn't flash.
