@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router";
-import { Check, Copy, Languages, Mail, X } from "lucide-react";
+import { Check, Copy, Languages, LogOut, Mail, X } from "lucide-react";
 import { Brand, DemoFooter, ThemeButton } from "../../components/ThemeButton";
 import { PageSkeleton, SkipLink, useScrolled } from "../../components/ui";
 import { LANGS, useI18n, type LangCode } from "../../lib/i18n";
@@ -37,15 +37,16 @@ export function FamilyShell() {
         }`}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:px-6">
-          <Link to={signedIn ? "/my" : "/"} className="shrink-0">
-            <Brand sub={ft.appSub} />
+          <Link to={signedIn ? "/my" : "/"} className="shrink-0" aria-label="ClearWait">
+            {/* Under 360px (e.g. iPhone SE 1st gen) only the logo fits next to the switches and sign-out. */}
+            <Brand sub={ft.appSub} textClassName="max-[359px]:hidden" />
           </Link>
-          <div className="ms-auto flex items-center gap-1.5">
+          <div className="ms-auto flex items-center gap-1 sm:gap-1.5">
             <label
               data-tour="language"
               className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white py-1 pe-1.5 ps-2 text-sm text-slate-600 transition-[border-color,box-shadow] focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/25"
             >
-              <Languages className="size-4 shrink-0" aria-hidden />
+              <Languages className="hidden size-4 shrink-0 sm:block" aria-hidden />
               <span className="sr-only">Language</span>
               <select
                 value={lang}
@@ -61,9 +62,18 @@ export function FamilyShell() {
             </label>
             <ThemeButton />
             {signedIn && (
-              <button type="button" onClick={p.signOutFamily} className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                <span className="hidden sm:inline">{maskContact(p.state.familySession!.contact)} · </span>
-                {ft.signOut}
+              <button
+                type="button"
+                onClick={p.signOutFamily}
+                title={ft.signOut}
+                className="flex items-center whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 sm:px-2.5"
+              >
+                {/* Phones: an icon, so the header fits next to the language and colour switches. */}
+                <LogOut className="size-4 sm:hidden" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  <span className="hidden sm:inline">{maskContact(p.state.familySession!.contact)} · </span>
+                  {ft.signOut}
+                </span>
               </button>
             )}
           </div>

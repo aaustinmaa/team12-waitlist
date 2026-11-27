@@ -56,12 +56,22 @@ export function ClearWaitMark({ className = "size-8" }: { className?: string }) 
 }
 
 /** The product mark and name, shared by every portal. */
-export function Brand({ sub, onDark = false }: { sub: string; /** on the staff sidebar's dark background */ onDark?: boolean }) {
+export function Brand({
+  sub,
+  onDark = false,
+  textClassName = "",
+}: {
+  sub: string;
+  /** on the staff sidebar's dark background */
+  onDark?: boolean;
+  /** extra classes for the name and label, e.g. to hide them on the narrowest phones */
+  textClassName?: string;
+}) {
   return (
     <span className={`flex items-center gap-3 font-semibold ${onDark ? "text-nav-fg" : "text-slate-900"}`}>
       <ClearWaitMark className={`size-9 rounded-[9px] shadow-sm ${onDark ? "ring-1 ring-white/15" : "dark:ring-1 dark:ring-white/10"}`} />
       {/* Name and portal label on two lines with a little air between them. */}
-      <span className="flex min-w-0 flex-col gap-1 leading-none">
+      <span className={`flex min-w-0 flex-col gap-1 leading-none ${textClassName}`}>
         <span className="text-base tracking-tight">{PRODUCT_NAME}</span>
         <span className={`truncate text-xs font-medium ${onDark ? "text-nav-fg/60" : "text-slate-500"}`}>{sub}</span>
       </span>
