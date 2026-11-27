@@ -37,8 +37,9 @@ export function FamilyShell() {
         }`}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:px-6">
-          <Link to={signedIn ? "/my" : "/"} className="shrink-0">
-            <Brand sub={ft.appSub} />
+          <Link to={signedIn ? "/my" : "/"} className="shrink-0" aria-label="ClearWait">
+            {/* Under 360px (e.g. iPhone SE 1st gen) only the logo fits next to the switches and sign-out. */}
+            <Brand sub={ft.appSub} textClassName="max-[359px]:hidden" />
           </Link>
           <div className="ms-auto flex items-center gap-1 sm:gap-1.5">
             <label
